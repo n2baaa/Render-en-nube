@@ -38,6 +38,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
           npm ci
+          npm ci --prefix .agents/skills/fusion
 
       - name: Renderizar Tramo ${{ matrix.tramo }}/4
         run: |
@@ -75,6 +76,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
           pip install numpy scipy
           npm ci
+          npm ci --prefix .agents/skills/fusion
 
       - name: Descargar los 4 tramos renderizados
         uses: actions/download-artifact@v4
