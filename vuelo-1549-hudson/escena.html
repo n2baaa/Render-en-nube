@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>208 segundos sin motores · Vuelo 1549</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: #0B101B; }
+  .tag { font-family: 'Bricolage'; font-weight: 700; font-size: 46px; fill: var(--linea); letter-spacing: -1px; }
+  .tag.ac { fill: var(--acento); }
+  .tagp { font-family: 'Mono'; font-weight: 700; font-size: 28px; fill: var(--tenue); letter-spacing: 3px; }
+  .callout { position: absolute; padding: 14px 26px 14px 20px; border-radius: 20px; background: rgba(14,18,28,.86); backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,.15); font-family: 'Bricolage'; font-weight: 700; font-size: 52px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.12); display: flex; align-items: center; gap: 16px; z-index: 30; }
+  .callout .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; box-shadow: 0 0 14px currentColor; }
+  .callout small { font-family: 'Mono'; font-size: 24px; letter-spacing: 3px; color: var(--tenue); display: block; font-weight: 700; }
+  .pill { position: absolute; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 34px; letter-spacing: 3px; white-space: nowrap; background: rgba(14,18,28,.9); border: 2px solid var(--tenue2); box-shadow: 0 14px 30px -10px rgba(0,0,0,.65); z-index: 30; }
+  .pillw { position: absolute; left: 0; right: 0; top: 185px; display: flex; justify-content: center; z-index: 30; }
+  .pillw .pill { position: static; transform: none; }
+  #recreacion { position: absolute; left: 60px; top: 68px; padding: 10px 20px; border-radius: 10px; font-family: 'Mono'; font-weight: 700;
+    font-size: 24px; letter-spacing: 3px; color: rgba(243,238,230,.75); background: rgba(14,18,28,.75); border: 1.5px solid rgba(255,255,255,.18); z-index: 35; }
+  #contadorW { position: absolute; left: 0; right: 0; top: 280px; text-align: center; z-index: 30; }
+  #contador { font-family: 'Bricolage'; font-weight: 700; font-size: 175px; line-height: 1; letter-spacing: -5px; color: #EAF6FF;
+    text-shadow: 0 0 36px rgba(79,179,255,.55), 0 14px 40px rgba(0,0,0,.75); display: inline-block; padding: 0 28px; }
+  #contadorW small { display: block; font-family: 'Mono'; font-weight: 700; font-size: 32px; letter-spacing: 5px; color: var(--agua); margin-top: 6px; }
+  .card { position: absolute; left: 70px; right: 70px; padding: 28px 36px; border-radius: 28px; background: rgba(14,18,28,.9); backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.15); box-shadow: 0 30px 60px -20px rgba(0,0,0,.85); z-index: 30; text-align: center; }
+  #radar { position: absolute; inset: 0; z-index: 22; clip-path: circle(0px at 50% 50%); }
+  #radar svg { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  #flash { position: absolute; inset: 0; pointer-events: none; z-index: 45; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(900px 900px at 50% 45%, #FFF8E0 0%, #FFB347 35%, rgba(255,80,20,.4) 65%, transparent 100%); }
+</style></head>
+<body><div id="lienzo">
+  <div id="recreacion">RECREACIÓN · INFORME NTSB</div>
+
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><defs>
+    <linearGradient id="g-cielo" gradientUnits="userSpaceOnUse" x1="0" y1="-600" x2="0" y2="5400">
+      <stop offset="0" stop-color="#0B1326"/><stop offset=".18" stop-color="#1A2C4E"/><stop offset=".32" stop-color="#2B4470"/>
+      <stop offset=".55" stop-color="#111726"/><stop offset=".78" stop-color="#192844"/><stop offset="1" stop-color="#0D182B"/>
+    </linearGradient>
+    <linearGradient id="g-fuselaje" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#DCE3EE"/><stop offset="1" stop-color="#8C99AE"/></linearGradient>
+    <linearGradient id="g-panza" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#253659"/><stop offset="1" stop-color="#121C33"/></linearGradient>
+    <linearGradient id="g-motor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A5B78"/><stop offset=".45" stop-color="#9BA8BE"/><stop offset="1" stop-color="#222D42"/></linearGradient>
+    <linearGradient id="g-fuego" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFF6C4"/><stop offset=".35" stop-color="#FF9A2E"/><stop offset=".75" stop-color="#E8361A"/><stop offset="1" stop-color="#E8361A" stop-opacity="0"/></linearGradient>
+    <linearGradient id="g-rio" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#286494"/><stop offset=".35" stop-color="#174166"/><stop offset="1" stop-color="#0A1E33"/></linearGradient>
+    <pattern id="p-tec" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0 L0 0 L0 50" fill="none" stroke="rgba(143,211,255,.08)" stroke-width="2"/></pattern>
+
+    <!-- Dibujo reutilizable del Airbus A320 lateral -->
+    <g id="dibA320">
+      <!-- ala trasera -->
+      <path d="M-40 -12 L-130 -95 L-85 -95 L30 -12 Z" fill="#9AA6B8"/>
+      <!-- cola vertical -->
+      <path d="M-240 -22 L-315 -195 L-245 -195 L-155 -22 Z" fill="#1D2F52"/>
+      <path d="M-295 -150 L-232 -150 M-282 -120 L-215 -120" stroke="#FF5A5F" stroke-width="10"/>
+      <!-- fuselaje principal -->
+      <path d="M-290 -24 L210 -24 C275 -24 325 4 335 22 C320 42 265 48 210 48 L-240 48 C-275 48 -305 26 -315 0 Z" fill="url(#g-fuselaje)"/>
+      <path d="M-285 16 L295 16 C280 42 245 48 210 48 L-240 48 C-270 48 -295 34 -305 16 Z" fill="url(#g-panza)"/>
+      <line x1="-285" y1="14" x2="305" y2="14" stroke="#C93B3B" stroke-width="5"/>
+      <!-- cabina de mando y ventanillas -->
+      <path d="M255 -12 L292 -4 L288 8 L248 8 Z" fill="#162238"/>
+      <g fill="#1E2C46">
+        <circle cx="-160" cy="-2" r="6"/><circle cx="-130" cy="-2" r="6"/><circle cx="-100" cy="-2" r="6"/><circle cx="-70" cy="-2" r="6"/>
+        <circle cx="-40" cy="-2" r="6"/><circle cx="-10" cy="-2" r="6"/><circle cx="20" cy="-2" r="6"/><circle cx="50" cy="-2" r="6"/>
+        <circle cx="80" cy="-2" r="6"/><circle cx="110" cy="-2" r="6"/><circle cx="140" cy="-2" r="6"/><circle cx="170" cy="-2" r="6"/><circle cx="200" cy="-2" r="6"/>
+      </g>
+      <!-- ala delantera -->
+      <path d="M-30 16 L-145 108 L-85 108 L55 22 Z" fill="#CED7E4" stroke="#7F8C9F" stroke-width="3"/>
+      <!-- motor bajo el ala -->
+      <g transform="translate(-15 58)">
+        <rect x="-46" y="-22" width="92" height="44" rx="14" fill="url(#g-motor)" stroke="#DCE3EE" stroke-width="3"/>
+        <ellipse cx="46" cy="0" rx="7" ry="20" fill="#141923"/>
+      </g>
+    </g>
+  </defs>
+
+  <g id="sacude"><g id="cam"><g id="contenido">
+    <!-- FONDO GLOBAL Y PARALLAX -->
+    <g id="fondo">
+      <rect x="-1500" y="-600" width="4200" height="6200" fill="url(#g-cielo)"/>
+      <g id="nubesCielo"></g>
+    </g>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         ESCENA 1 · EL CIELO DE NUEVA YORK Y EL IMPACTO DE LOS GANSOS (y ≈ 520)
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <g id="escena1">
+      <!-- Skyline de Manhattan (exclusivo de Escena 1 para no invadir Escena 2) -->
+      <g id="skyline" fill="#121B2E" stroke="#243554" stroke-width="2">
+        <rect x="-220" y="520" width="120" height="620"/><rect x="-80" y="420" width="140" height="720"/>
+        <rect x="80" y="290" width="130" height="850"/><rect x="115" y="230" width="60" height="60"/><line x1="145" y1="120" x2="145" y2="230" stroke="#6C85B5" stroke-width="6"/>
+        <rect x="235" y="460" width="150" height="680"/><rect x="410" y="360" width="165" height="780"/>
+        <rect x="600" y="490" width="130" height="650"/><rect x="755" y="330" width="145" height="810"/>
+        <rect x="925" y="440" width="155" height="700"/><rect x="1105" y="510" width="140" height="630"/>
+        <g id="lucesCiudad" fill="#FFE2A8" opacity=".45"></g>
+      </g>
+      <!-- trayectoria de ascenso -->
+      <path d="M-200 760 Q220 620 560 520" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="6" stroke-dasharray="16 14"/>
+      <!-- Avión exterior ascendiendo -->
+      <g id="avionCielo" transform="translate(510 520) rotate(-9)">
+        <use href="#dibA320"/>
+        <!-- fogonazo en los motores al golpear los gansos -->
+        <g id="fuegoMotorExt" opacity="0">
+          <path d="M-15 58 L-240 25 L-190 58 L-250 92 Z" fill="url(#g-fuego)"/>
+          <circle cx="30" cy="58" r="34" fill="#FFB347" filter="url(#f-brillo)"/>
+        </g>
+      </g>
+      <g id="humoCielo"></g>
+      <!-- Bandada de gansos canadienses -->
+      <g id="bandada">
+        <g class="ave" transform="translate(880 430)"><path d="M-26 -10 Q-10 -28 0 -4 Q10 -28 26 -10" fill="none" stroke="#F3EEE6" stroke-width="6" stroke-linecap="round"/><circle r="5" fill="#FF8A5B"/></g>
+        <g class="ave" transform="translate(935 465)"><path d="M-26 -10 Q-10 -28 0 -4 Q10 -28 26 -10" fill="none" stroke="#F3EEE6" stroke-width="6" stroke-linecap="round"/><circle r="5" fill="#FF8A5B"/></g>
+        <g class="ave" transform="translate(845 485)"><path d="M-26 -10 Q-10 -28 0 -4 Q10 -28 26 -10" fill="none" stroke="#F3EEE6" stroke-width="6" stroke-linecap="round"/><circle r="5" fill="#FF8A5B"/></g>
+        <g class="ave" transform="translate(910 520)"><path d="M-26 -10 Q-10 -28 0 -4 Q10 -28 26 -10" fill="none" stroke="#F3EEE6" stroke-width="6" stroke-linecap="round"/><circle r="5" fill="#FF8A5B"/></g>
+        <g class="ave" transform="translate(970 495)"><path d="M-26 -10 Q-10 -28 0 -4 Q10 -28 26 -10" fill="none" stroke="#F3EEE6" stroke-width="6" stroke-linecap="round"/><circle r="5" fill="#FF8A5B"/></g>
+      </g>
+    </g>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         ESCENA 2 · CORTE TRANSVERSAL DE LA TURBINA Y ALAS SIN ENERGÍA (y ≈ 1920)
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <g id="escena2" transform="translate(0 1920)">
+      <rect x="-400" y="-700" width="1900" height="1400" fill="url(#p-tec)"/>
+      <!-- Carcasa del motor CFM56 en sección transversal -->
+      <g id="turbinaCorte" transform="translate(540 -40)">
+        <!-- góndola exterior metálica -->
+        <path d="M-360 -210 C-180 -245 180 -235 350 -165 L350 165 C180 235 -180 245 -360 210 Z" fill="#161E2E" stroke="#8FA3C4" stroke-width="8"/>
+        <path d="M-355 -202 C-180 -235 180 -225 345 -158 L345 -125 L-355 -155 Z" fill="url(#g-motor)"/>
+        <path d="M-355 202 C-180 235 180 225 345 158 L345 125 L-355 155 Z" fill="url(#g-motor)"/>
+        <!-- cámara de combustión interna -->
+        <rect x="-120" y="-115" width="380" height="230" rx="28" fill="#0E131D" stroke="#495A78" stroke-width="4"/>
+        <!-- fuego de combustión que se apaga cuando entran las aves -->
+        <g id="fuegoTurbina">
+          <ellipse cx="95" cy="-55" rx="145" ry="38" fill="url(#g-fuego)"/>
+          <ellipse cx="95" cy="55" rx="145" ry="38" fill="url(#g-fuego)"/>
+        </g>
+        <!-- eje central y etapas del compresor -->
+        <rect x="-310" y="-24" width="620" height="48" rx="12" fill="url(#g-cromo)"/>
+        <!-- Álabes / aspas del fan y compresor (se doblan y rompen en A.rompen) -->
+        <g id="rotorFan" transform="translate(-250 0)">
+          <rect id="aspa1" x="-16" y="-175" width="32" height="155" rx="8" fill="url(#g-cromo)" stroke="#DCE6F5" stroke-width="3"/>
+          <rect id="aspa2" x="-16" y="20" width="32" height="155" rx="8" fill="url(#g-cromo)" stroke="#DCE6F5" stroke-width="3"/>
+          <rect x="-65" y="-155" width="22" height="135" rx="6" fill="#7D8B9E"/>
+          <rect x="-65" y="20" width="22" height="135" rx="6" fill="#7D8B9E"/>
+          <circle r="38" fill="#2A354B" stroke="#FF8A5B" stroke-width="6"/>
+        </g>
+        <!-- trozos de aspas rotas que saltan -->
+        <g id="aspasRotas" opacity="0">
+          <polygon points="-210,-120 -165,-145 -150,-95" fill="#DCE6F5" stroke="#FF5A5F" stroke-width="4"/>
+          <polygon points="-195,95 -140,130 -175,155" fill="#DCE6F5" stroke="#FF5A5F" stroke-width="4"/>
+          <path d="M-250 -90 L-190 -55 L-230 -20 M-245 85 L-185 50" stroke="#FF5A5F" stroke-width="7" stroke-linecap="round"/>
+        </g>
+        <g id="chispasTurbina"></g>
+        <g id="humoTurbina"></g>
+        <text class="tagp" x="0" y="-255" text-anchor="middle">SECCIÓN · MOTOR TURBOFÁN</text>
+      </g>
+
+      <!-- Esquema inferior de las alas quedándose sin electricidad (A.electricidad) -->
+      <g id="esquemaAlas" transform="translate(540 360)" opacity="0">
+        <path d="M-380 40 L-90 -40 L90 -40 L380 40 L350 90 L0 25 L-350 90 Z" fill="#1A2438" stroke="#5E7294" stroke-width="6"/>
+        <path id="cableAla" d="M-310 52 L0 -10 L310 52" fill="none" stroke="#FF5A5F" stroke-width="10" stroke-dasharray="18 12"/>
+        <circle cx="0" cy="-10" r="36" fill="#FF5A5F"/>
+        <path d="M-14 -24 L14 4 M14 -24 L-14 4" stroke="#FFF" stroke-width="8" stroke-linecap="round"/>
+        <text class="tag ac" x="0" y="-75" text-anchor="middle" style="fill:#FF8A8D">SIN ENERGÍA EN LAS ALAS</text>
+      </g>
+    </g>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         ESCENA 3 · EL SECRETO TÉCNICO: APU EN LA COLA Y HÉLICE RAT (y ≈ 3180)
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <g id="escena3" transform="translate(0 3180)">
+      <rect x="-400" y="-750" width="1900" height="1500" fill="url(#p-tec)"/>
+      <!-- Gran avión en corte técnico lateral mostrando cabina, cola (APU) y panza (RAT) -->
+      <g id="avionEsquema" transform="translate(540 -20)">
+        <!-- silueta translúcida del fuselaje -->
+        <path d="M-410 -40 L310 -40 C400 -40 465 0 480 30 C460 62 390 72 310 72 L-340 72 C-395 72 -435 40 -450 0 Z" fill="#152036" stroke="#6B88B8" stroke-width="7"/>
+        <!-- cola vertical -->
+        <path d="M-330 -40 L-440 -285 L-340 -285 L-210 -40 Z" fill="#192844" stroke="#6B88B8" stroke-width="6"/>
+
+        <!-- 1. CABINA (izquierda/delante, x=340) -->
+        <g id="nodoCabina" transform="translate(340 10)">
+          <circle r="48" fill="#1E3256" stroke="#4FB3FF" stroke-width="5"/>
+          <text class="tagp" x="0" y="-68" text-anchor="middle" style="fill:#8FD3FF">CABINA</text>
+          <rect x="-26" y="-14" width="52" height="28" rx="6" fill="#5BE49B"/>
+        </g>
+
+        <!-- 2. GENERADOR AUXILIAR APU EN LA COLA (x=-365, y=-5) -->
+        <g id="nodoApu" transform="translate(-365 5)">
+          <circle id="haloApu" r="78" fill="var(--ok)" opacity="0" style="filter:blur(16px)"/>
+          <rect x="-52" y="-36" width="104" height="72" rx="14" fill="#1C2D42" stroke="#5BE49B" stroke-width="6"/>
+          <circle r="22" fill="#5BE49B"/>
+          <path d="M-4 -12 L-14 2 L-2 2 L-8 14 L12 -2 L2 -2 Z" fill="#0E0D11"/>
+          <text class="tag ac" x="0" y="-65" text-anchor="middle" style="fill:#5BE49B">APU · COLA</text>
+        </g>
+
+        <!-- 3. HÉLICE DE EMERGENCIA RAT BAJO LA PANZA (x=-10, y=135) -->
+        <g id="nodoRat" transform="translate(-10 72)">
+          <!-- compuerta y brazo abatible -->
+          <g id="brazoRat">
+            <line x1="0" y1="0" x2="0" y2="88" stroke="url(#g-cromo)" stroke-width="16" stroke-linecap="round"/>
+            <g transform="translate(0 92)">
+              <circle r="20" fill="#FF8A5B" stroke="#FFF" stroke-width="4"/>
+              <g id="aspasRat">
+                <ellipse cx="0" cy="-48" rx="11" ry="44" fill="#EAF6FF" stroke="#4FB3FF" stroke-width="3"/>
+                <ellipse cx="0" cy="48" rx="11" ry="44" fill="#EAF6FF" stroke="#4FB3FF" stroke-width="3"/>
+                <ellipse cx="-48" cy="0" rx="44" ry="11" fill="#EAF6FF" stroke="#4FB3FF" stroke-width="3"/>
+                <ellipse cx="48" cy="0" rx="44" ry="11" fill="#EAF6FF" stroke="#4FB3FF" stroke-width="3"/>
+              </g>
+            </g>
+          </g>
+          <text class="tag ac" x="0" y="195" text-anchor="middle">HÉLICE RAT</text>
+        </g>
+
+        <!-- Flujo de viento que mueve la hélice RAT -->
+        <g id="vientoRat"></g>
+
+        <!-- Líneas eléctricas que conectan APU + RAT con los mandos de las alas y cabina -->
+        <path id="lineaApu" d="M-310 5 L300 5" fill="none" stroke="#5BE49B" stroke-width="10" stroke-linecap="round"/>
+        <path id="lineaRat" d="M-10 72 L-10 5 L180 5" fill="none" stroke="#4FB3FF" stroke-width="10" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         ESCENA 5 · EL RÍO HUDSON: TRAMPA DE ALABEO, 11 GRADOS Y RESCATE (y ≈ 4480)
+         ══════════════════════════════════════════════════════════════════════════ -->
+    <g id="escena5" transform="translate(0 4480)">
+      <!-- Skyline de fondo junto al río -->
+      <g fill="#152036" opacity=".75">
+        <rect x="-300" y="-620" width="160" height="640"/><rect x="-110" y="-740" width="180" height="760"/>
+        <rect x="95" y="-580" width="150" height="600"/><rect x="270" y="-810" width="190" height="830"/>
+        <rect x="490" y="-650" width="170" height="670"/><rect x="690" y="-720" width="180" height="740"/>
+        <rect x="900" y="-590" width="170" height="610"/>
+      </g>
+
+      <!-- Agua helada del río Hudson -->
+      <path id="olaHudson" fill="url(#g-rio)" d=""/>
+      <path id="olaBrillo" fill="none" stroke="#8FD3FF" stroke-width="6" opacity=".75" d=""/>
+
+      <!-- A) Diagrama frontal de la trampa mortal: si un ala toca antes, gira y se parte -->
+      <g id="vistaFrontal" transform="translate(540 -140)" opacity="0">
+        <g id="avionInclinado">
+          <!-- alas vistas de frente -->
+          <path d="M-390 10 L0 -15 L390 10 L390 26 L0 8 L-390 26 Z" fill="#DCE3EE" stroke="#6B7C96" stroke-width="4"/>
+          <!-- motores colgados -->
+          <circle cx="-145" cy="42" r="28" fill="#3B4B66" stroke="#FF5A5F" stroke-width="6"/>
+          <circle cx="145" cy="42" r="28" fill="#3B4B66" stroke="#8FA3C4" stroke-width="5"/>
+          <!-- fuselaje frontal -->
+          <circle cx="0" cy="-12" r="56" fill="#FFF" stroke="#4A5B78" stroke-width="6"/>
+          <path d="M-32 -24 L32 -24 L24 -8 L-24 -8 Z" fill="#18243A"/>
+          <line x1="0" y1="-68" x2="0" y2="-165" stroke="#1D2F52" stroke-width="16" stroke-linecap="round"/>
+        </g>
+        <!-- indicador de impacto en el ala izquierda -->
+        <circle id="golpeAla" cx="-260" cy="110" r="52" fill="var(--peligro)" opacity="0"/>
+      </g>
+
+      <!-- B) Vista lateral del amerizaje perfecto con el morro a 11° y evacuación sobre las alas -->
+      <g id="avionHudson" transform="translate(490 -40)">
+        <use href="#dibA320"/>
+        <!-- Arco transportador de ángulo de ataque (11°) -->
+        <g id="arcoGrados" opacity="0">
+          <line x1="-260" y1="45" x2="360" y2="45" stroke="#8FD3FF" stroke-width="5" stroke-dasharray="14 10"/>
+          <path d="M260 45 A220 220 0 0 0 245 -35" fill="none" stroke="var(--acento)" stroke-width="10"/>
+          <text class="tag ac" x="345" y="-10" text-anchor="start" style="font-size:64px">11°</text>
+        </g>
+        <!-- Tanques de aire en las alas (flotadores) -->
+        <g id="tanquesFlota" opacity="0">
+          <rect x="-125" y="20" width="160" height="44" rx="14" fill="rgba(79,179,255,.35)" stroke="#4FB3FF" stroke-width="5"/>
+          <text class="tagp" x="-45" y="50" text-anchor="middle" style="fill:#FFF">AIRE</text>
+        </g>
+        <!-- Rampas hinchables y siluetas genéricas de las 155 personas sobre las alas -->
+        <g id="evacuacion" opacity="0">
+          <!-- rampa amarilla -->
+          <path d="M-65 48 L-155 115 L-95 122 L-25 52 Z" fill="#FFD36B" stroke="#FF9800" stroke-width="4"/>
+          <path d="M165 36 L235 98 L185 106 L125 40 Z" fill="#FFD36B" stroke="#FF9800" stroke-width="4"/>
+          <!-- fila de figuras genéricas sin rostro sobre el ala -->
+          <g fill="#FFE082" stroke="#0E131F" stroke-width="3">
+            <circle cx="-115" cy="18" r="11"/><path d="M-126 30 L-104 30 L-100 66 L-130 66 Z"/>
+            <circle cx="-82" cy="12" r="11"/><path d="M-93 24 L-71 24 L-67 60 L-97 60 Z"/>
+            <circle cx="-48" cy="6" r="11"/><path d="M-59 18 L-37 18 L-33 54 L-63 54 Z"/>
+            <circle cx="-14" cy="0" r="11"/><path d="M-25 12 L-3 12 L1 48 L-29 48 Z"/>
+            <circle cx="20" cy="-4" r="11"/><path d="M9 8 L31 8 L35 44 L5 44 Z"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- Espray de agua al amerizar -->
+      <g id="esprayAgua"></g>
+    </g>
+
+    <g id="ondas"></g>
+  </g><g id="capaLupa"></g></g></g></svg>
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       ESCENA 4 · PANTALLA DE RADAR TÁCTICO ATC (TRANSICIÓN IRIS WIPE)
+       ══════════════════════════════════════════════════════════════════════════ -->
+  <div id="radar"><svg viewBox="0 0 1080 1920">
+    <defs>
+      <pattern id="p-rad" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0 L0 0 L0 60" fill="none" stroke="rgba(91,228,155,.12)" stroke-width="2"/></pattern>
+      <radialGradient id="g-rad" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#0D2622"/><stop offset="1" stop-color="#050E10"/></radialGradient>
+    </defs>
+    <rect width="1080" height="1920" fill="url(#g-rad)"/><rect width="1080" height="1920" fill="url(#p-rad)"/>
+    <!-- círculos concéntricos del radar -->
+    <g fill="none" stroke="rgba(91,228,155,.22)" stroke-width="3">
+      <circle cx="540" cy="960" r="220"/><circle cx="540" cy="960" r="420"/><circle cx="540" cy="960" r="620"/>
+    </g>
+    <!-- Río Hudson vertical en el mapa táctico -->
+    <path d="M430 150 C445 650 420 1250 400 1820 L610 1820 C630 1250 655 650 640 150 Z" fill="rgba(79,179,255,.22)" stroke="#4FB3FF" stroke-width="5"/>
+    <text class="tagp" x="525" y="1320" text-anchor="middle" style="fill:#8FD3FF">RÍO HUDSON</text>
+    <!-- Bloques de rascacielos de Manhattan a la derecha del río -->
+    <g fill="rgba(255,90,95,.16)" stroke="#FF5A5F" stroke-width="3">
+      <rect x="680" y="520" width="260" height="190" rx="10"/>
+      <rect x="680" y="750" width="280" height="240" rx="10"/>
+      <rect x="680" y="1030" width="250" height="220" rx="10"/>
+    </g>
+    <text class="tagp" x="815" y="880" text-anchor="middle" style="fill:#FF8A8D">EDIFICIOS</text>
+    <!-- Aeropuerto LaGuardia (abajo a la derecha) -->
+    <g transform="translate(880 1420)">
+      <rect x="-95" y="-30" width="190" height="60" rx="10" fill="#122824" stroke="#5BE49B" stroke-width="4"/>
+      <text class="tagp" x="0" y="10" text-anchor="middle" style="fill:#5BE49B">AEROPUERTO</text>
+    </g>
+    <!-- Ruta roja fallida hacia el aeropuerto (choca contra los edificios) -->
+    <path id="rutaFallo" d="M535 520 C720 620 820 780 815 920" fill="none" stroke="#FF5A5F" stroke-width="12" stroke-dasharray="22 14" stroke-linecap="round"/>
+    <g id="cruzRadar" transform="translate(815 920)">
+      <circle r="44" fill="#FF5A5F"/><path d="M-16 -16 L16 16 M16 -16 L-16 16" stroke="#FFF" stroke-width="10" stroke-linecap="round"/>
+    </g>
+    <!-- Ruta verde directa al río Hudson -->
+    <path id="rutaHudson" d="M535 520 L520 1160" fill="none" stroke="#5BE49B" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="535" cy="520" r="20" fill="#FFF" stroke="#5BE49B" stroke-width="8"/>
+    <circle id="puntoHudson" cx="520" cy="1160" r="36" fill="#5BE49B"/>
+    <text class="tag" x="540" y="340" text-anchor="middle" style="fill:#5BE49B;font-size:56px">RADAR TÁCTICO · VUELO 1549</text>
+  </svg></div>
+
+  <!-- CAPAS DE PANTALLA Y HUD -->
+  <div id="flash"></div>
+  <div id="titular" class="titular" style="top:165px;text-shadow:0 10px 40px rgba(0,0,0,.8)">208 segundos<br><em>sin motores</em></div>
+
+  <div class="pillw"><div id="pVuelo" class="pill" style="border-color:var(--agua);color:#BFE6FF">✈️ VUELO 1549 · 155 PERSONAS</div></div>
+  <div id="contadorW"><span id="contador">850 m</span><small>IMPACTO CON BANDADA DE GANSOS</small></div>
+
+  <div class="pillw"><div id="pTurbina" class="pill" style="border-color:var(--peligro);color:#FF9A9D">⚙️ SECCIÓN · INTERIOR DEL MOTOR</div></div>
+  <div id="cApagan" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--peligro)"></span><div><small>ASPAS ROTAS</small>0 % EMPUJE</div></div>
+
+  <div class="pillw"><div id="pSecreto" class="pill" style="border-color:var(--ok);color:#A8F5CB">⚡ ENERGÍA DE EMERGENCIA</div></div>
+  <div id="cApu" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--ok)"></span><div><small>ANTES DEL MANUAL</small>GENERADOR APU</div></div>
+  <div id="cRat" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--agua)"></span><div><small>BAJO LA PANZA</small>HÉLICE RAT</div></div>
+
+  <div class="pillw"><div id="pTrampa" class="pill" style="border-color:var(--peligro);color:#FF9A9D">⚠️ LA TRAMPA DEL AMERIZAJE</div></div>
+  <div id="cGira" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--peligro)"></span><div><small>SI UN ALA TOCA ANTES</small>GIRA Y SE PARTE</div></div>
+  <div id="cOnce" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--acento)"></span><div><small>ALAS RECTAS + MORRO A</small>11 GRADOS</div></div>
+
+  <div id="cardFinal" class="card" style="top:155px">
+    <div style="font-family:'Mono';font-size:28px;letter-spacing:4px;color:var(--ok)">RÍO HUDSON · 208 SEGUNDOS DESPUÉS</div>
+    <div style="font-family:'Bricolage';font-size:92px;font-weight:700;letter-spacing:-3px;margin-top:6px;color:#FFF">155 DE 155 <span style="color:var(--ok)">VIVOS</span></div>
+  </div>
+
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+  const mk = (tag, attrs, padre) => { const e = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); if (padre) padre.appendChild(e); return e; };
+
+  // Nubes y ventanas del skyline
+  const az = X.azar(23);
+  for (let i = 0; i < 10; i++) {
+    mk('ellipse', { cx: -400 + i * 240, cy: 140 + (i % 3) * 120, rx: 140 + az() * 120, ry: 36 + az() * 24, fill: '#DCE8FA', opacity: (0.12 + az() * 0.16).toFixed(2) }, $('nubesCielo'));
+  }
+  for (let y = 350; y < 1050; y += 70) {
+    for (let x = -190; x < 1200; x += 65) {
+      if (az() > 0.45) mk('rect', { x, y, width: 24, height: 38, rx: 3, fill: '#FFE2A8', opacity: (0.25 + 0.4 * az()).toFixed(2) }, $('lucesCiudad'));
+    }
+  }
+
+  // Anclas obligatorias sincronizadas con voz.txt
+  const A = {
+    segundos: X.debe(X.en('segundos', 1), 'segundos'),
+    rascacielos: X.debe(X.en('rascacielos'), 'rascacielos'),
+    despega: X.debe(X.en('despega'), 'despega'),
+    personas: X.debe(X.en('personas', 1), 'personas'),
+    ochocientos: X.debe(X.en('ochocientos'), 'ochocientos'),
+    gansos: X.debe(X.en('gansos'), 'gansos'),
+    golpea: X.debe(X.en('golpea'), 'golpea'),
+    turbina: X.debe(X.en('turbina'), 'turbina'),
+    aspas: X.debe(X.en('aspas'), 'aspas'),
+    rompen: X.debe(X.en('rompen'), 'rompen'),
+    apagan: X.debe(X.en('apagan'), 'apagan'),
+    electricidad: X.debe(X.en('electricidad'), 'electricidad'),
+    alas1: X.debe(X.en('alas', 1), 'alas 1'),
+    piloto1: X.debe(X.en('piloto', 1), 'piloto 1'),
+    generador: X.debe(X.en('generador'), 'generador'),
+    cola: X.debe(X.en('cola'), 'cola'),
+    manual: X.debe(X.en('manual'), 'manual'),
+    panza1: X.debe(X.en('panza', 1), 'panza 1'),
+    helice: X.debe(X.en('hélice'), 'hélice'),
+    viento: X.debe(X.en('viento'), 'viento'),
+    mandos: X.debe(X.en('mandos'), 'mandos'),
+    radar: X.debe(X.en('radar'), 'radar'),
+    pierden: X.debe(X.en('pierden'), 'pierden'),
+    aeropuerto: X.debe(X.en('aeropuerto'), 'aeropuerto'),
+    chocarian: X.debe(X.en('chocarían'), 'chocarían'),
+    pista: X.debe(X.en('pista'), 'pista'),
+    hudson: X.debe(X.en('Hudson'), 'Hudson'),
+    trampa: X.debe(X.en('trampa'), 'trampa'),
+    toca: X.debe(X.en('toca'), 'toca'),
+    parte: X.debe(X.en('parte'), 'parte'),
+    rectas: X.debe(X.en('rectas'), 'rectas'),
+    morro: X.debe(X.en('morro'), 'morro'),
+    once: X.debe(X.en('once'), 'once'),
+    esqui: X.debe(X.en('esquí'), 'esquí'),
+    desliza: X.debe(X.en('desliza'), 'desliza'),
+    flota: X.debe(X.en('flota'), 'flota'),
+    tanques: X.debe(X.en('tanques'), 'tanques'),
+    salen: X.debe(X.en('salen'), 'salen'),
+    vivas: X.debe(X.en('vivas'), 'vivas'),
+  };
+
+  // 22 cambios de ángulo y escena dinámicos (cámara siempre viva con perspectiva 3D)
+  const camaras = [
+    { t: 0, x: 520, y: 510, z: 1.22, r: -2.2, rx: 7, ry: -9 },
+    { t: A.rascacielos - 0.1, x: 540, y: 580, z: 0.92, r: 0.8, rx: 4, ry: 6, dur: 0.9 },
+    { t: A.despega, x: 430, y: 540, z: 1.15, r: -1.5, rx: 6, ry: -8, dur: 1.0 },
+    { t: A.ochocientos - 0.1, x: 580, y: 500, z: 1.08, r: 0.5, rx: -4, ry: 8, dur: 0.9 },
+    { t: A.golpea - 0.15, x: 520, y: 545, z: 1.62, r: 2.8, rx: -8, ry: 12, dur: 0.75 },
+    { t: A.turbina - 0.15, x: 540, y: 1880, z: 1.18, r: 0, rx: 6, ry: -8, dur: 1.0 },
+    { t: A.aspas - 0.1, x: 370, y: 1880, z: 1.58, r: -1.2, rx: -6, ry: 10, dur: 0.9 },
+    { t: A.apagan, x: 560, y: 1890, z: 1.28, r: 0.8, rx: 5, ry: -6, dur: 0.9 },
+    { t: A.electricidad - 0.1, x: 540, y: 2180, z: 1.18, r: 0, rx: 8, ry: 0, dur: 0.95 },
+    { t: A.piloto1 - 0.1, x: 780, y: 3160, z: 1.52, r: -0.9, rx: 6, ry: 10, dur: 1.0 },
+    { t: A.generador - 0.1, x: 240, y: 3150, z: 1.60, r: 1.1, rx: -6, ry: -10, dur: 0.95 },
+    { t: A.panza1 - 0.1, x: 510, y: 3260, z: 1.48, r: -0.8, rx: 8, ry: 8, dur: 0.95 },
+    { t: A.mandos - 0.15, x: 540, y: 3170, z: 0.92, r: 0, rx: 3, ry: -4, dur: 1.0 },
+    { t: A.trampa - 0.2, x: 540, y: 4360, z: 1.22, r: 0, rx: 6, ry: 0, dur: 0.9 },
+    { t: A.toca, x: 480, y: 4370, z: 1.42, r: -2.5, rx: -6, ry: 10, dur: 0.85 },
+    { t: A.rectas - 0.1, x: 540, y: 4360, z: 1.22, r: 0, rx: 4, ry: -4, dur: 0.85 },
+    { t: A.once - 0.15, x: 540, y: 4415, z: 1.16, r: -1.2, rx: 6, ry: -10, dur: 0.9 },
+    { t: A.desliza - 0.1, x: 530, y: 4435, z: 1.10, r: 0.6, rx: 4, ry: 6, dur: 0.95 },
+    { t: A.tanques - 0.1, x: 510, y: 4440, z: 1.24, r: -0.5, rx: 8, ry: -6, dur: 0.9 },
+    { t: A.salen - 0.1, x: 510, y: 4410, z: 1.08, r: 0, rx: 6, ry: 0, dur: 1.0 },
+    { t: A.vivas + 0.1, x: 520, y: 4360, z: 0.96, r: -0.5, rx: 4, ry: -4, dur: 1.1 },
+  ];
+
+  // Efectos de sonido sincronizados con cada cambio de ángulo y escena
+  X.sonido(0.05, 'whoosh', 0.85);
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 0.95) * 0.6, 'whoosh', 0.55));
+  [A.despega, A.ochocientos, A.turbina, A.electricidad, A.generador, A.helice, A.radar, A.hudson, A.trampa, A.once, A.tanques, A.vivas].forEach((t) => X.sonido(t, 'pop', 0.55));
+  X.sonido(A.golpea, 'feedback', 0.95);
+  X.sonido(A.rompen, 'click', 0.9);
+  X.sonido(A.cola, 'notificacion', 0.7);
+  X.sonido(A.chocarian, 'feedback', 0.75);
+  X.sonido(A.desliza, 'swoosh', 0.85);
+  X.sonido(A.vivas, 'dinero', 0.7);
+
+  // Partículas, humo, ondas, flechas, lupa y contadores
+  const humoMotorCielo = X.humo($('humoCielo'), { ruta: (u) => [480 - u * 340, 565 + u * 50], n: 16, vida: 1.8, tam: [22, 68], color: '#2B303A', op: 0.65, semilla: 5, viento: [-40, -10] });
+  const humoTurb = X.humo($('humoTurbina'), { ruta: (u) => [-180 + u * 480, (u - 0.5) * 40], n: 16, vida: 1.6, tam: [28, 75], color: '#383E4C', op: 0.7, semilla: 11, viento: [40, -10] });
+  const chispasTurb = X.particulas($('chispasTurbina'), { n: 22, ruta: (u) => [-240 + u * 260, (u - 0.5) * 180], vuelta: 0.8, tam: [6, 13], color: '#FFF275', op: 0.95, semilla: 8, jitter: 45 });
+  const flujoViento = X.particulas($('vientoRat'), { n: 18, ruta: (u) => [-220 + u * 340, 164], vuelta: 0.9, tam: [6, 12], color: '#8FD3FF', op: 0.85, semilla: 14, jitter: 22 });
+  const espray = X.particulas($('esprayAgua'), { n: 26, ruta: (u) => [480 - u * 360, -10 - Math.sin(u * Math.PI) * 110], vuelta: 1.0, tam: [8, 18], color: '#EAF6FF', op: 0.85, semilla: 19, jitter: 32 });
+
+  const ondaImpacto = X.onda($('ondas'), { x: 500, y: 575, color: '#FF8A5B', radio: 260, ancho: 16 });
+  const ondaTurbina = X.onda($('ondas'), { x: 290, y: 1880, color: '#FF5A5F', radio: 240, ancho: 14 });
+  const ondaApu = X.onda($('ondas'), { x: 175, y: 3165, color: '#5BE49B', radio: 220, ancho: 12 });
+  const ondaAgua = X.onda($('ondas'), { x: 490, y: 4460, color: '#8FD3FF', radio: 320, ancho: 14 });
+  const flechaAire = X.flecha($('ondas'), { d: 'M80 1880 L230 1880', color: '#8FD3FF', ancho: 11 });
+
+  const lupa = X.lupa($('capaLupa'), { fuente: '#contenido', r: 120, zoom: 2.1 });
+  const contAlt = X.contador($('contador'), { desde: 100, hasta: 850, sufijo: ' m', separador: '.' });
+  const destCont = X.destello($('contadorW'));
+  const destFinal = X.destello($('cardFinal'));
+
+  const subs = X.subtitulos($('subs'), {
+    max: 3, y: 1470,
+    claves: ['segundos', 'motores', 'rascacielos', 'personas', 'ochocientos', 'gansos', 'turbina', 'aspas', 'rompen', 'apagan', 'electricidad', 'generador', 'cola', 'manual', 'hélice', 'viento', 'mandos', 'radar', 'aeropuerto', 'edificios', 'Hudson', 'trampa', 'parte', 'rectas', 'once', 'esquí', 'flota', 'tanques', 'vivas']
+  });
+  const grano = X.grano($('lienzo'), 0.06);
+  const pp1 = X.primerPlano($('lienzo'), { n: 6, tipo: 'bokeh', color: '#CFE4FF', semilla: 31, prof: [1.7, 2.4], blur: [20, 34], op: [0.12, 0.22] });
+
+  return (t) => {
+    X.camara($('cam'), t, camaras);
+
+    // Sacudida en el choque de los gansos, rotura de aspas y giro de la trampa
+    let dx = 0, dy = 0;
+    [[A.golpea, 22], [A.rompen, 18], [A.parte, 15], [A.desliza, 12]].forEach(([t0, a]) => {
+      if (t > t0) { const e = Math.exp(-5 * (t - t0)) * a; dx += e * Math.sin((t - t0) * 58); dy += e * Math.cos((t - t0) * 45); }
+    });
+    $('sacude').setAttribute('transform', `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`);
+
+    X.profundidad($('fondo'), 0.82);
+    pp1(t); grano(t);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+
+    // ── ESCENA 1: Ascenso del avión y choque con la bandada de gansos ──
+    const asc = X.C.inOut(X.seg(t, 0, A.golpea));
+    $('avionCielo').setAttribute('transform', `translate(${(430 + 95 * asc).toFixed(1)} ${(560 - 45 * asc).toFixed(1)}) rotate(${(-11 + 6 * X.seg(t, A.golpea, A.turbina)).toFixed(2)})`);
+    const uAves = X.C.in(X.seg(t, A.ochocientos - 0.2, A.golpea + 0.05));
+    const visAves = 1 - X.C.out(X.seg(t, A.golpea, A.golpea + 0.35));
+    $('bandada').setAttribute('transform', `translate(${(-370 * uAves).toFixed(1)} ${(70 * uAves).toFixed(1)})`);
+    $('bandada').setAttribute('opacity', visAves.toFixed(2));
+    const fog = X.C.out(X.seg(t, A.golpea - 0.05, A.golpea + 0.2)) * (1 - X.C.inOut(X.seg(t, A.turbina, A.turbina + 0.4))) + (t < 1.8 ? 0.85 : 0);
+    $('fuegoMotorExt').setAttribute('opacity', X.limita(fog).toFixed(2));
+    humoMotorCielo.dibuja(t, 0, A.turbina);
+    ondaImpacto.dibuja(t, A.golpea);
+    const fl = Math.exp(-6 * Math.max(0, t - A.golpea)) * (t >= A.golpea ? 1 : 0);
+    $('flash').style.opacity = (0.75 * fl).toFixed(3);
+
+    // ── ESCENA 2: Corte transversal de la turbina, rotura de aspas y apagado ──
+    flechaAire.dibuja(t, A.turbina, 0.5, A.apagan);
+    const rotura = X.C.out(X.seg(t, A.rompen - 0.1, A.rompen + 0.3));
+    const apaga = X.C.inOut(X.seg(t, A.apagan - 0.2, A.apagan + 0.5));
+    $('aspa1').setAttribute('transform', `rotate(${(28 * rotura).toFixed(1)} 0 -40)`);
+    $('aspa2').setAttribute('transform', `rotate(${(-32 * rotura).toFixed(1)} 0 40)`);
+    $('aspasRotas').setAttribute('opacity', rotura.toFixed(2));
+    $('fuegoTurbina').setAttribute('opacity', (1 - apaga).toFixed(2));
+    chispasTurb.dibuja(t, A.rompen - 0.1, A.apagan + 0.3);
+    humoTurb.dibuja(t, A.apagan - 0.1, A.piloto1);
+    ondaTurbina.dibuja(t, A.rompen);
+
+    const visAlasSin = X.C.suave(X.seg(t, A.electricidad - 0.15, A.electricidad + 0.35)) * (1 - X.C.suave(X.seg(t, A.piloto1 - 0.1, A.piloto1 + 0.3)));
+    $('esquemaAlas').setAttribute('opacity', visAlasSin.toFixed(2));
+
+    // ── ESCENA 3: APU en la cola y hélice RAT desplegándose bajo la panza ──
+    const onApu = X.C.out(X.seg(t, A.generador - 0.1, A.cola + 0.3));
+    $('haloApu').setAttribute('opacity', (0.7 * onApu).toFixed(2));
+    X.traza($('lineaApu'), t, A.cola, 0.8);
+    ondaApu.dibuja(t, A.cola);
+
+    const abreRat = X.C.blando(X.seg(t, A.panza1, A.helice + 0.3));
+    $('brazoRat').setAttribute('transform', `rotate(${(-88 * (1 - abreRat)).toFixed(1)})`);
+    const giroRat = t > A.helice ? (t - A.helice) * 720 : 0;
+    $('aspasRat').setAttribute('transform', `rotate(${(giroRat % 360).toFixed(1)})`);
+    flujoViento.dibuja(t, A.viento - 0.2, A.radar);
+    X.traza($('lineaRat'), t, A.viento, 0.7);
+
+    // ── ESCENA 4: Transición circular a Pantalla de Radar Táctico ATC ──
+    const rAbre = X.C.inOut(X.seg(t, A.radar - 0.15, A.radar + 0.55)) * (1 - X.C.inOut(X.seg(t, A.trampa - 0.35, A.trampa + 0.2)));
+    $('radar').style.clipPath = `circle(${(rAbre * 1250).toFixed(0)}px at 50% 50%)`;
+    X.traza($('rutaFallo'), t, A.aeropuerto - 0.1, 0.75);
+    X.anima($('cruzRadar'), t, { entra: A.chocarian - 0.1, dur: 0.45, desde: { s: 0.3, y: 0, blur: 8 }, curva: 'blando' });
+    X.traza($('rutaHudson'), t, A.pista, 0.75);
+    X.anima($('puntoHudson'), t, { entra: A.hudson - 0.1, dur: 0.45, desde: { s: 0.2, y: 0, blur: 8 }, curva: 'blando' });
+
+    // ── ESCENA 5: El río Hudson, la trampa de alabeo, los 11 grados y el rescate ──
+    $('olaHudson').setAttribute('d', X.ola(-900, 2100, 15, 950, t, { amp: 9, largo: 150, vel: 2.0 }));
+    $('olaBrillo').setAttribute('d', X.ola(-900, 2100, 18, 18, t, { amp: 9, largo: 150, vel: 2.0 }).replace(/ L2100 [\d.]+ L-900 [\d.]+ Z$/, ''));
+
+    // Diagrama frontal (trampa vs alas rectas)
+    const visFrente = X.C.suave(X.seg(t, A.trampa - 0.1, A.trampa + 0.35)) * (1 - X.C.suave(X.seg(t, A.morro - 0.2, A.morro + 0.2)));
+    $('vistaFrontal').setAttribute('opacity', visFrente.toFixed(2));
+    const inclina = X.C.inOut(X.seg(t, A.toca - 0.1, A.parte + 0.1)) * (1 - X.C.firme(X.seg(t, A.rectas - 0.1, A.rectas + 0.4)));
+    $('avionInclinado').setAttribute('transform', `rotate(${(-20 * inclina).toFixed(2)}) translate(0 ${(28 * inclina).toFixed(1)})`);
+    $('golpeAla').setAttribute('opacity', (0.85 * inclina).toFixed(2));
+
+    // Avión lateral amerizando a 11 grados con las alas rectas
+    const visLat = t < A.morro - 0.2 ? 0 : X.C.suave((t - (A.morro - 0.2)) / 0.4);
+    $('avionHudson').setAttribute('opacity', visLat.toFixed(2));
+    const levantaMorro = X.C.firme(X.seg(t, A.morro, A.once + 0.3)) * (1 - 0.65 * X.C.inOut(X.seg(t, A.flota, A.tanques + 0.4)));
+    const deslizaX = X.C.out(X.seg(t, A.once, A.flota + 0.3));
+    const hundeY = X.C.inOut(X.seg(t, A.esqui, A.desliza + 0.4));
+    $('avionHudson').setAttribute('transform', `translate(${(340 + 180 * deslizaX).toFixed(1)} ${(-95 + 68 * hundeY).toFixed(1)}) rotate(${(-11 * levantaMorro).toFixed(2)})`);
+
+    const visArco = X.C.suave(X.seg(t, A.once - 0.1, A.once + 0.3)) * (1 - X.C.suave(X.seg(t, A.desliza, A.desliza + 0.4)));
+    $('arcoGrados').setAttribute('opacity', visArco.toFixed(2));
+    ondaAgua.dibuja(t, A.desliza);
+    espray.dibuja(t, A.esqui, A.flota + 0.2);
+
+    const visTanq = X.C.suave(X.seg(t, A.flota, A.tanques + 0.3)) * (1 - X.C.suave(X.seg(t, A.salen, A.salen + 0.4)));
+    $('tanquesFlota').setAttribute('opacity', visTanq.toFixed(2));
+    const visEvac = t < A.salen - 0.1 ? 0 : X.C.firme((t - (A.salen - 0.1)) / 0.6);
+    $('evacuacion').setAttribute('opacity', visEvac.toFixed(2));
+
+    // Lupa en Escena 2 (aspas rotas) y Escena 3 (hélice RAT)
+    const lu1 = (t < A.rompen - 0.1 ? 0 : X.C.blando((t - (A.rompen - 0.1)) / 0.5)) * (1 - X.C.inOut(X.seg(t, A.apagan + 0.2, A.electricidad)));
+    const lu2 = (t < A.helice - 0.1 ? 0 : X.C.blando((t - (A.helice - 0.1)) / 0.5)) * (1 - X.C.inOut(X.seg(t, A.mandos - 0.1, A.mandos + 0.3)));
+    if (lu1 > 0.01) lupa.dibuja(t, { x: 420, y: 1850, mira: [290, 1880], z: 2.1, a: lu1 });
+    else if (lu2 > 0.01) lupa.dibuja(t, { x: 400, y: 3250, mira: [530, 3325], z: 2.1, a: lu2 });
+    else lupa.el.setAttribute('opacity', 0);
+
+    // ── HUD Y ETIQUETAS ──
+    X.anima($('titular'), t, { entra: 0.0, dur: 0.5, sale: A.despega - 0.2, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('pVuelo'), t, { entra: A.despega, dur: 0.45, sale: A.ochocientos - 0.15, desde: { y: -30, blur: 12 }, curva: 'firme' });
+
+    X.anima($('contadorW'), t, { entra: A.ochocientos - 0.1, dur: 0.5, sale: A.turbina - 0.2, desde: { y: -30, s: 0.75, blur: 16 }, curva: 'blando' });
+    contAlt.dibuja(t, A.ochocientos - 0.1, 0.8);
+    destCont.dibuja(t, A.gansos, 0.8);
+
+    X.anima($('pTurbina'), t, { entra: A.turbina - 0.1, dur: 0.45, sale: A.piloto1 - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cApagan'), t, { entra: A.apagan - 0.1, dur: 0.5, sale: A.piloto1 - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('pSecreto'), t, { entra: A.piloto1 - 0.1, dur: 0.45, sale: A.radar - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cApu'), t, { entra: A.generador - 0.1, dur: 0.5, sale: A.panza1 - 0.15, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cRat'), t, { entra: A.helice - 0.1, dur: 0.5, sale: A.radar - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('pTrampa'), t, { entra: A.trampa - 0.1, dur: 0.45, sale: A.salen - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cGira'), t, { entra: A.toca - 0.1, dur: 0.5, sale: A.rectas - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cOnce'), t, { entra: A.once - 0.1, dur: 0.5, sale: A.flota - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('cardFinal'), t, { entra: A.salen - 0.1, dur: 0.65, desde: { y: -45, blur: 18, s: 0.94 }, curva: 'firme' });
+    destFinal.dibuja(t, A.vivas, 0.9);
+
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

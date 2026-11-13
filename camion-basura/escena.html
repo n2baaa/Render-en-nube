@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>¿Por qué el camión de basura deja tu bolsa?</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: radial-gradient(1100px 900px at 50% 34%, #222834 0%, #0D0F14 78%); }
+  .tag { font-family: 'Bricolage'; font-weight: 700; font-size: 46px; fill: var(--linea); letter-spacing: -1px; }
+  .tag.ac { fill: var(--acento); }
+  .tagp { font-family: 'Mono'; font-weight: 700; font-size: 28px; fill: var(--tenue); letter-spacing: 3px; }
+  .callout { position: absolute; padding: 14px 26px 14px 20px; border-radius: 20px; background: rgba(18,20,28,.84); backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,.14); font-family: 'Bricolage'; font-weight: 700; font-size: 54px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.12); display: flex; align-items: center; gap: 16px; }
+  .callout .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+  .callout small { font-family: 'Mono'; font-size: 25px; letter-spacing: 3px; color: var(--tenue); display: block; font-weight: 700; }
+  .pill { position: absolute; left: 50%; transform: translateX(-50%); padding: 16px 32px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 35px; letter-spacing: 3px; white-space: nowrap; background: rgba(18,20,28,.88); border: 2px solid var(--tenue2); box-shadow: 0 14px 30px -10px rgba(0,0,0,.65); }
+  .pillw { position: absolute; left: 0; right: 0; top: 185px; display: flex; justify-content: center; }
+  .pillw .pill { position: static; transform: none; }
+  #contadorW { position: absolute; left: 0; right: 0; top: 165px; text-align: center; }
+  #contador { font-family: 'Bricolage'; font-weight: 700; font-size: 195px; line-height: 1; letter-spacing: -6px; color: #FFE8D6;
+    text-shadow: 0 0 40px rgba(255,138,91,.55), 0 14px 40px rgba(0,0,0,.7); display: inline-block; padding: 0 30px; }
+  #contadorW small { display: block; font-family: 'Mono'; font-weight: 700; font-size: 34px; letter-spacing: 5px; color: var(--acento); margin-top: 6px; }
+  .card { position: absolute; left: 68px; right: 68px; padding: 30px 36px; border-radius: 30px; background: rgba(18,20,28,.88); backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.14); box-shadow: 0 30px 60px -20px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.12); }
+  .card h3 { font-family: 'Mono'; font-size: 30px; letter-spacing: 5px; color: var(--acento); margin-bottom: 12px; }
+  .fila { display: flex; align-items: center; gap: 22px; font-family: 'Bricolage'; font-size: 48px; font-weight: 700; letter-spacing: -1px; margin: 12px 0; }
+  .num { width: 64px; height: 64px; flex: none; border-radius: 50%; background: var(--ok); color: #0E0D11; display: flex; align-items: center; justify-content: center;
+    font-family: 'Mono'; font-size: 34px; box-shadow: 0 0 24px rgba(91,228,155,.45); }
+  #flash { position: absolute; inset: 0; pointer-events: none; z-index: 45; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(900px 900px at 50% 48%, #FFF8E0 0%, #FFB347 35%, rgba(255,80,20,.4) 65%, transparent 100%); }
+  #tinte { position: absolute; inset: 0; pointer-events: none; z-index: 44; mix-blend-mode: soft-light; opacity: 0; background: #FF4A1A; }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><defs>
+    <linearGradient id="g-cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#111622"/><stop offset=".6" stop-color="#1D2436"/><stop offset="1" stop-color="#282F42"/></linearGradient>
+    <linearGradient id="g-camion" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E8E63"/><stop offset=".5" stop-color="#2C6B49"/><stop offset="1" stop-color="#1B462F"/></linearGradient>
+    <linearGradient id="g-cabina" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F6F9"/><stop offset=".6" stop-color="#C9D1DC"/><stop offset="1" stop-color="#8B95A5"/></linearGradient>
+    <linearGradient id="g-acero" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#525A66"/><stop offset=".35" stop-color="#CFD6E0"/><stop offset=".65" stop-color="#8A94A3"/><stop offset="1" stop-color="#3B414B"/></linearGradient>
+    <linearGradient id="g-pala" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB347"/><stop offset=".5" stop-color="#E67E22"/><stop offset="1" stop-color="#9C4B08"/></linearGradient>
+    <linearGradient id="g-bolsa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3A3F4B"/><stop offset=".45" stop-color="#1E222A"/><stop offset="1" stop-color="#0E1015"/></linearGradient>
+    <linearGradient id="g-llama" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFF4C2"/><stop offset=".28" stop-color="#FFC23A"/><stop offset=".65" stop-color="#FF6A1A"/><stop offset="1" stop-color="#E82C1A" stop-opacity="0"/></linearGradient>
+    <linearGradient id="g-llama-in" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".45" stop-color="#FFE27A"/><stop offset="1" stop-color="#FFB02E" stop-opacity="0"/></linearGradient>
+    <radialGradient id="g-farol" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE082" stop-opacity=".95"/><stop offset=".4" stop-color="#FF9800" stop-opacity=".55"/><stop offset="1" stop-color="#FF6D00" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-alerta" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FF5A5F" stop-opacity=".55"/><stop offset="1" stop-color="#FF5A5F" stop-opacity="0"/></radialGradient>
+    <clipPath id="clipCorte"><rect id="corteR" x="150" y="620" width="0" height="520" rx="22"/></clipPath>
+    <clipPath id="clipCajaInt"><rect x="165" y="660" width="560" height="360" rx="16"/></clipPath>
+  </defs>
+
+  <g id="sacude"><g id="cam"><g id="contenido">
+    <!-- 1 · FONDO DE CALLE Y EDIFICIOS -->
+    <g id="fondo">
+      <rect x="-900" y="-800" width="3000" height="2000" fill="url(#g-cielo)"/>
+      <!-- edificios de fondo -->
+      <rect x="-400" y="-200" width="520" height="1350" fill="#181D2A" filter="url(#m-hormigon)"/>
+      <rect x="160" y="-340" width="620" height="1490" fill="#1E2433" filter="url(#m-hormigon)"/>
+      <rect x="820" y="-160" width="560" height="1310" fill="#171C28" filter="url(#m-hormigon)"/>
+      <g id="ventanas"></g>
+      <!-- farola de calle -->
+      <rect x="920" y="260" width="18" height="890" fill="#4A5260" filter="url(#m-metal)"/>
+      <path d="M929 270 Q929 210 850 210 L810 210" fill="none" stroke="#626C7D" stroke-width="16" stroke-linecap="round"/>
+      <ellipse cx="805" cy="216" rx="34" ry="12" fill="#FFF3C4"/>
+      <path d="M775 220 L520 1180 L1090 1180 L835 220 Z" fill="url(#g-luz)" opacity=".55"/>
+      <!-- silueta de vecino en portal -->
+      <g transform="translate(880 980)" opacity=".55">
+        <circle cx="0" cy="-110" r="24" fill="#2B3344"/>
+        <path d="M-32 -80 Q0 -86 32 -80 L40 20 L22 20 L16 110 L-16 110 L-22 20 L-40 20 Z" fill="#2B3344"/>
+      </g>
+    </g>
+
+    <!-- 2 · ACERA Y CALZADA -->
+    <g id="calle">
+      <!-- acera de hormigón -->
+      <rect x="-900" y="1120" width="3000" height="110" fill="#5A606D" filter="url(#m-hormigon)"/>
+      <rect x="-900" y="1215" width="3000" height="24" fill="#3D424D"/>
+      <g stroke="#393E48" stroke-width="4" opacity=".6">
+        <line x1="-300" y1="1120" x2="-340" y2="1230"/><line x1="100" y1="1120" x2="60" y2="1230"/>
+        <line x1="500" y1="1120" x2="460" y2="1230"/><line x1="900" y1="1120" x2="860" y2="1230"/><line x1="1300" y1="1120" x2="1260" y2="1230"/>
+      </g>
+      <!-- asfalto -->
+      <rect x="-900" y="1239" width="3000" height="1100" fill="#14171F" filter="url(#m-hormigon)"/>
+      <line x1="-900" y1="1460" x2="2100" y2="1460" stroke="#F3EEE6" stroke-width="10" stroke-dasharray="90 70" opacity=".28"/>
+    </g>
+
+    <!-- 3 · CAMIÓN COMPACTADOR DE BASURA -->
+    <g id="camionW">
+      <!-- sombras de contacto bajo ruedas y camión -->
+      <ellipse cx="420" cy="1272" rx="460" ry="34" fill="#000" opacity=".65" style="filter:blur(12px)"/>
+      <!-- chasis inferior -->
+      <rect x="20" y="1020" width="760" height="75" rx="14" fill="#262B34" filter="url(#m-metal)"/>
+
+      <!-- cabina delantera (izquierda) -->
+      <g id="cabina" filter="url(#f-sombra)">
+        <path d="M-95 1050 L-95 790 Q-95 710 -25 695 L105 695 L105 1050 Z" fill="url(#g-cabina)" filter="url(#m-metal)"/>
+        <!-- parabrisas y ventanilla -->
+        <path d="M-80 805 Q-80 735 -20 725 L75 725 L75 855 L-80 855 Z" fill="#1C2B3E" stroke="#4F637A" stroke-width="5" filter="url(#m-cristal)"/>
+        <path d="M-65 745 L45 745 L15 840 L-65 840 Z" fill="#8FD3FF" opacity=".22"/>
+        <!-- silueta conductor genérico -->
+        <circle cx="-5" cy="790" r="22" fill="#0E131B"/>
+        <path d="M-35 850 Q-5 815 25 850 Z" fill="#0E131B"/>
+        <!-- parrilla y faro -->
+        <rect x="-95" y="910" width="36" height="90" rx="8" fill="#2A303A"/>
+        <circle cx="-78" cy="980" r="14" fill="#FFF6C4" filter="url(#f-brillo)"/>
+        <path d="M-92 980 L-420 1090 L-420 920 Z" fill="url(#g-luz)" opacity=".45"/>
+        <!-- franja reflectante -->
+        <rect x="-95" y="1008" width="200" height="18" fill="#FFB347"/>
+        <!-- sirena ámbar superior -->
+        <rect x="-10" y="668" width="44" height="28" rx="10" fill="#FF9800"/>
+        <circle id="luzFarol" cx="12" cy="676" r="95" fill="url(#g-farol)"/>
+      </g>
+
+      <!-- caja compactadora (vuelca en el incendio) -->
+      <g id="cajaW">
+        <!-- exterior de la caja verde -->
+        <g id="cajaExt" filter="url(#f-sombra)">
+          <path d="M120 630 L710 630 Q760 630 785 685 L830 820 L830 1050 L120 1050 Z" fill="url(#g-camion)" filter="url(#m-metal)"/>
+          <!-- costillas de refuerzo metálicas -->
+          <g fill="#215238" opacity=".85">
+            <rect x="210" y="645" width="22" height="390" rx="6"/>
+            <rect x="330" y="645" width="22" height="390" rx="6"/>
+            <rect x="450" y="645" width="22" height="390" rx="6"/>
+            <rect x="570" y="645" width="22" height="390" rx="6"/>
+          </g>
+          <!-- franja reflectante blanca/naranja -->
+          <rect x="125" y="985" width="695" height="22" fill="#F3EEE6" opacity=".85"/>
+          <rect x="125" y="985" width="695" height="22" fill="#FF8A5B" stroke-dasharray="45 45"/>
+          <!-- tolva trasera abierta -->
+          <path d="M725 655 L825 810 L825 1040 L725 1040 Z" fill="#182026" stroke="#495663" stroke-width="6"/>
+        </g>
+
+        <!-- SECCIÓN EN CORTE DEL CAMIÓN (SE ABRE CON «DENTRO») -->
+        <g id="seccion" clip-path="url(#clipCorte)">
+          <!-- interior oscuro de la cámara de compactación -->
+          <rect x="150" y="648" width="665" height="390" rx="18" fill="#12151C" stroke="#FFB38A" stroke-width="5"/>
+          <!-- carril guía superior e inferior -->
+          <rect x="165" y="668" width="590" height="18" rx="6" fill="url(#g-acero)" filter="url(#m-metal)"/>
+          <rect x="165" y="998" width="590" height="22" rx="6" fill="url(#g-acero)" filter="url(#m-metal)"/>
+
+          <g clip-path="url(#clipCajaInt)">
+            <!-- bloque de basura / reciclaje que se comprime -->
+            <g id="bloqueBasura">
+              <rect id="masaBasura" x="175" y="700" width="380" height="295" rx="18" fill="#3D483B" filter="url(#m-organico)"/>
+              <!-- bolsas y cajas dentro de la cámara -->
+              <circle cx="240" cy="780" r="46" fill="#252A34" filter="url(#m-plastico)"/>
+              <circle cx="330" cy="840" r="54" fill="#2F3542" filter="url(#m-plastico)"/>
+              <rect cx="260" x="210" y="860" width="110" height="90" rx="10" fill="#9A7B56" filter="url(#m-papel)"/>
+              <rect x="350" y="730" width="120" height="85" rx="10" fill="#B58E63" filter="url(#m-papel)"/>
+              <circle cx="440" cy="890" r="48" fill="#252A34" filter="url(#m-plastico)"/>
+
+              <!-- capa de cartón limpio para el paso 3 (reciclaje) -->
+              <g id="capaReciclaje" opacity="0">
+                <rect x="175" y="700" width="380" height="295" rx="16" fill="#C89D66" filter="url(#m-papel)"/>
+                <g stroke="#8C673A" stroke-width="5" fill="#DFB782">
+                  <rect x="190" y="715" width="160" height="80" rx="8"/>
+                  <rect x="365" y="715" width="170" height="80" rx="8"/>
+                  <rect x="190" y="810" width="175" height="80" rx="8"/>
+                  <rect x="380" y="810" width="155" height="80" rx="8"/>
+                  <rect x="190" y="905" width="345" height="75" rx="8"/>
+                </g>
+                <!-- manchas de grasa y cristal roto que arruinan las 10 toneladas -->
+                <g id="manchasGrasa"></g>
+              </g>
+            </g>
+
+            <!-- ESCOMBROS IRROMPIBLES EN EL CARRIL (PASO 1) -->
+            <g id="escombrosDentro" opacity="0">
+              <polygon points="510,995 545,915 615,930 635,995" fill="#7D828A" stroke="#AEB4BD" stroke-width="4" filter="url(#m-hormigon)"/>
+              <polygon points="465,995 495,935 550,950 560,995" fill="#636870" stroke="#959BA4" stroke-width="4" filter="url(#m-hormigon)"/>
+              <polygon points="555,960 595,895 650,925 630,985" fill="#8C9199" stroke="#C2C7D0" stroke-width="4" filter="url(#m-hormigon)"/>
+              <text class="tagp" x="555" y="875" text-anchor="middle" style="fill:#FF8A8D">HORMIGÓN</text>
+            </g>
+
+            <!-- BATERÍA DE LITIO Y AEROSOL EN LA TOLVA (PASO 2) -->
+            <g id="peligroDentro" opacity="0">
+              <!-- batería de iones de litio -->
+              <g id="bateriaLitio" transform="translate(535 855)">
+                <rect x="-48" y="-28" width="96" height="56" rx="10" fill="#202630" stroke="#4FB3FF" stroke-width="5" filter="url(#m-metal)"/>
+                <rect x="48" y="-14" width="12" height="28" rx="4" fill="url(#g-cromo)"/>
+                <rect x="-38" y="-18" width="55" height="36" rx="5" fill="#4FB3FF" opacity=".85"/>
+                <path d="M-8 -12 L-22 2 L-8 2 L-16 14 L6 -2 L-6 -2 Z" fill="#FFF3B0"/>
+              </g>
+              <!-- bote de aerosol presurizado -->
+              <g id="boteAerosol" transform="translate(545 945) rotate(-18)">
+                <rect x="-24" y="-45" width="48" height="90" rx="10" fill="#E04F54" stroke="#FFD2D4" stroke-width="4" filter="url(#m-metal)"/>
+                <path d="M-24 -30 Q0 -50 24 -30" fill="#CFD6E0"/>
+                <rect x="-10" y="-58" width="20" height="16" rx="4" fill="#FFF"/>
+              </g>
+            </g>
+
+            <!-- PRENSA HIDRÁULICA (CILINDROS + PALA DE ACERO) -->
+            <g id="prensaGrupo">
+              <!-- carcasa fija de los cilindros a la derecha -->
+              <rect x="650" y="730" width="95" height="36" rx="8" fill="#3B424E" stroke="#7A8494" stroke-width="3"/>
+              <rect x="650" y="890" width="95" height="36" rx="8" fill="#3B424E" stroke="#7A8494" stroke-width="3"/>
+              <!-- vástagos cromados que se estiran -->
+              <rect id="vastago1" x="450" y="737" width="205" height="22" rx="8" fill="url(#g-cromo)" filter="url(#m-metal)"/>
+              <rect id="vastago2" x="450" y="897" width="205" height="22" rx="8" fill="url(#g-cromo)" filter="url(#m-metal)"/>
+              <!-- grieta / rotura de cilindro cuando hay escombros -->
+              <path id="grietaCil" d="M600 734 L612 752 L598 764 M610 894 L596 910 L614 924" fill="none" stroke="#FF5A5F" stroke-width="6" stroke-linecap="round" opacity="0"/>
+              <!-- pala de acero (placa compactadora) -->
+              <g id="palaAcero" transform="translate(550 0)">
+                <rect x="-18" y="684" width="36" height="314" rx="10" fill="url(#g-pala)" stroke="#FFE0B2" stroke-width="4" filter="url(#m-metal)"/>
+                <line x1="0" y1="700" x2="0" y2="982" stroke="#5E2C04" stroke-width="6" stroke-dasharray="18 14"/>
+              </g>
+            </g>
+
+            <!-- llamas e incendio dentro del camión (Paso 2) -->
+            <g id="llamasCamion" style="mix-blend-mode:screen"></g>
+            <g id="chispasLitio"></g>
+            <g id="fugaHidraulica"></g>
+          </g>
+
+          <!-- borde discontinuo del corte técnico -->
+          <rect x="150" y="648" width="665" height="390" rx="18" fill="none" stroke="#FFB38A" stroke-width="5" stroke-dasharray="16 12"/>
+        </g>
+
+        <!-- BRAZO MECÁNICO ELEVADOR TRASERO -->
+        <g id="brazoMecanico" transform="translate(815 890)">
+          <circle r="22" fill="#FFB347" stroke="#262B34" stroke-width="6"/>
+          <g id="brazoArt">
+            <path d="M0 0 L95 75 L135 55" fill="none" stroke="url(#g-acero)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" filter="url(#m-metal)"/>
+            <!-- pinza del brazo -->
+            <path d="M130 35 L155 55 L130 78" fill="none" stroke="#FF8A5B" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- bolsa 1 (la que sí se lleva el camión al principio) -->
+            <g id="bolsaSubiendo" transform="translate(148 75)">
+              <path d="M-42 10 C-50 -35 -25 -55 0 -55 C25 -55 50 -35 42 10 C46 42 28 58 0 58 C-28 58 -46 42 -42 10 Z" fill="url(#g-bolsa)" filter="url(#m-plastico)"/>
+              <path d="M-14 -55 L0 -74 L14 -55 Z" fill="#252A34"/>
+              <path d="M-16 -53 L16 -53" stroke="#5BE49B" stroke-width="6" stroke-linecap="round"/>
+            </g>
+          </g>
+        </g>
+      </g>
+
+      <!-- ruedas del camión -->
+      <g id="ruedaDel" transform="translate(20 1135)">
+        <circle r="76" fill="#181A20" stroke="#343946" stroke-width="10" filter="url(#m-plastico)"/>
+        <circle r="38" fill="url(#g-cromo)"/>
+        <circle r="14" fill="#262B34"/>
+      </g>
+      <g id="ruedaTras1" transform="translate(540 1135)">
+        <circle r="76" fill="#181A20" stroke="#343946" stroke-width="10" filter="url(#m-plastico)"/>
+        <circle r="38" fill="url(#g-cromo)"/>
+        <circle r="14" fill="#262B34"/>
+      </g>
+      <g id="ruedaTras2" transform="translate(710 1135)">
+        <circle r="76" fill="#181A20" stroke="#343946" stroke-width="10" filter="url(#m-plastico)"/>
+        <circle r="38" fill="url(#g-cromo)"/>
+        <circle r="14" fill="#262B34"/>
+      </g>
+    </g>
+
+    <!-- 4 · OPERARIO Y CUBO / BOLSA DEJADA EN LA ACERA -->
+    <!-- silueta de operario con chaleco reflectante -->
+    <g id="operario" transform="translate(855 1135)">
+      <ellipse cx="0" cy="85" rx="38" ry="10" fill="#000" opacity=".5"/>
+      <circle cx="0" cy="-125" r="24" fill="#8C96A8"/>
+      <!-- gorra -->
+      <path d="M-24 -132 Q0 -150 28 -130 L38 -128 L-24 -128 Z" fill="#FF8A5B"/>
+      <!-- torso con bandas reflectantes -->
+      <path d="M-34 -95 Q0 -102 34 -95 L40 0 L-40 0 Z" fill="#2B5B40" filter="url(#m-tela)"/>
+      <rect x="-35" y="-65" width="70" height="12" fill="#5BE49B"/>
+      <rect x="-37" y="-35" width="74" height="12" fill="#5BE49B"/>
+      <!-- piernas -->
+      <path d="M-28 0 L-32 82 L-8 82 L-4 0 M4 0 L8 82 L32 82 L28 0" fill="#1D2330"/>
+    </g>
+
+    <!-- bolsa / cubo que el camión DEJA en la acera -->
+    <g id="basuraAcera" transform="translate(945 1140)">
+      <ellipse cx="0" cy="78" rx="78" ry="18" fill="#000" opacity=".6"/>
+      <circle id="haloRechazo" cx="0" cy="0" r="135" fill="url(#g-alerta)" opacity="0"/>
+      <!-- cubo azul/gris en la acera -->
+      <path d="M-58 -75 L58 -75 L46 75 L-46 75 Z" fill="#2B394A" stroke="#536B85" stroke-width="5" filter="url(#m-plastico)"/>
+      <rect x="-66" y="-88" width="132" height="18" rx="7" fill="#3B4E66"/>
+      <!-- bolsa pesada / rota asomando -->
+      <path d="M-44 -85 C-50 -130 45 -130 44 -85 Z" fill="url(#g-bolsa)" filter="url(#m-plastico)"/>
+      <!-- escombros que asoman en el Paso 1 -->
+      <g id="piedrasAcera" opacity="0">
+        <polygon points="-38,-88 -15,-125 18,-112 10,-85" fill="#8C9199" stroke="#C2C7D0" stroke-width="3"/>
+        <polygon points="5,-90 28,-122 50,-98 38,-84" fill="#6E737B" stroke="#AEB4BD" stroke-width="3"/>
+      </g>
+      <!-- PEGATINA ROJA DE RECHAZO -->
+      <g id="pegatinaRoja" transform="translate(0 -5) scale(0)">
+        <rect x="-52" y="-32" width="104" height="64" rx="10" fill="#FF5A5F" stroke="#FFF" stroke-width="4" filter="url(#f-brillo)"/>
+        <path d="M-18 -14 L18 14 M18 -14 L-18 14" stroke="#FFF" stroke-width="8" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- carga ardiendo volcada en la calle (Paso 2: «volcar la carga ardiendo») -->
+    <g id="cargaVolcada" transform="translate(910 1310)" opacity="0">
+      <ellipse cx="0" cy="35" rx="130" ry="30" fill="#000" opacity=".65"/>
+      <path d="M-110 30 Q-60 -65 10 -45 Q85 -60 115 30 Z" fill="#3A302A" filter="url(#m-organico)"/>
+      <g id="llamasCalle" style="mix-blend-mode:screen"></g>
+    </g>
+
+    <!-- humo y partículas del mundo -->
+    <g id="humoCamion"></g>
+    <g id="particulasMundo"></g>
+
+    <!-- iconos de estado en el mundo (cruz roja y tic verde) -->
+    <g transform="translate(945 965)"><g id="cruzAcera">
+      <circle r="48" fill="var(--peligro)" filter="url(#f-brillo)"/>
+      <path d="M-18 -18 L18 18 M18 -18 L-18 18" stroke="#fff" stroke-width="11" stroke-linecap="round"/>
+    </g></g>
+    <g transform="translate(855 965)"><g id="ticFinal">
+      <circle r="54" fill="var(--ok)" filter="url(#f-brillo)"/>
+      <path d="M-23 2 L-6 19 L25 -16" fill="none" stroke="#0E0D11" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    </g></g>
+
+    <g id="ondas"></g>
+  </g><g id="capaLupa"></g></g></g></svg>
+
+  <!-- CAPAS DE PANTALLA Y HUD -->
+  <div id="tinte"></div>
+  <div id="flash"></div>
+  <div id="titular" class="titular" style="top:165px;text-shadow:0 10px 40px rgba(0,0,0,.75)">¿Por qué deja <em>tu basura</em>?</div>
+
+  <div class="pillw"><div id="pCorte" class="pill" style="border-color:var(--acento);color:#FFD0B8">🔍 EL CAMIÓN POR DENTRO</div></div>
+  <div id="contadorW"><span id="contador">1 t</span><small>FUERZA DE LA PRENSA HIDRÁULICA</small></div>
+  <div id="cVolumen" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--acento)"></span><div><small>APLASTA EL VOLUMEN</small>×4 VECES</div></div>
+
+  <!-- Paso 1: Escombros y Peso -->
+  <div class="pillw"><div id="pMotivo1" class="pill" style="border-color:#FF8A5B;color:#FFC2A6">1 · EXCESO DE PESO Y ESCOMBROS</div></div>
+  <div id="cBrazo" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--peligro)"></span><div><small>BRAZO HIDRÁULICO</small>LÍMITE DE CARGA</div></div>
+  <div id="cAtasco" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--peligro)"></span><div><small>NO SE COMPRIME</small>ROMPE CILINDROS</div></div>
+
+  <!-- Paso 2: Baterías y Aerosoles -->
+  <div class="pillw"><div id="pMotivo2" class="pill" style="border-color:var(--peligro);color:#FF9A9D;background:rgba(70,12,16,.88)">2 · BATERÍAS DE LITIO Y AEROSOLES</div></div>
+  <div id="cCorto" class="callout" style="left:85px;top:300px"><span class="dot" style="background:#4FB3FF"></span><div><small>AL PERFORARSE</small>CORTOCIRCUITO</div></div>
+  <div class="pillw"><div id="pIncendio" class="pill" style="border-color:var(--peligro);color:#FFF;background:rgba(180,24,18,.92);font-size:42px">🔥 INCENDIO EN LA CARGA</div></div>
+
+  <!-- Paso 3: Contaminación en Reciclaje -->
+  <div class="pillw"><div id="pMotivo3" class="pill" style="border-color:#8BD96B;color:#C8F5B4">3 · CONTAMINACIÓN EN RECICLAJE</div></div>
+  <div id="cArruina" class="callout" style="left:85px;top:300px"><span class="dot" style="background:#8BD96B"></span><div><small>GRASA + CRISTAL ROTO</small>10 t ARRUINADAS</div></div>
+  <div id="cPegatina" class="callout" style="left:85px;top:300px"><span class="dot" style="background:var(--peligro)"></span><div><small>AVISO EN TU CUBO</small>PEGATINA ROJA</div></div>
+
+  <!-- Solución en 3 pasos -->
+  <div id="solucion" class="card" style="top:145px">
+    <h3>CÓMO SACARLA SIEMPRE BIEN</h3>
+    <div class="fila" id="f1"><div class="num">1</div><div>Bolsas cerradas y ligeras</div></div>
+    <div class="fila" id="f2"><div class="num">2</div><div>Escombros y baterías → Punto limpio</div></div>
+    <div class="fila" id="f3"><div class="num">3</div><div>Cada residuo en su cubo</div></div>
+  </div>
+
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+  const mk = (tag, attrs, padre) => { const e = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); if (padre) padre.appendChild(e); return e; };
+
+  // Ventanas de los edificios para dar vida al fondo urbano
+  const azV = X.azar(14);
+  for (let y = -120; y < 920; y += 110) {
+    for (let x = -340; x < 1300; x += 95) {
+      if (Math.abs(x - 125) < 45 || Math.abs(x - 795) < 45) continue;
+      const enc = azV() > 0.42;
+      mk('rect', { x, y, width: 46, height: 68, rx: 6, fill: enc ? '#FFE2A8' : '#10141F', opacity: enc ? (0.25 + 0.35 * azV()).toFixed(2) : 0.65 }, $('ventanas'));
+    }
+  }
+
+  // Anclas obligatorias sincronizadas palabra a palabra con voz.txt
+  const A = {
+    bolsa: X.debe(X.en('bolsa', 1), 'bolsa'),
+    deja: X.debe(X.en('deja'), 'deja'),
+    acera: X.debe(X.en('acera', 1), 'acera'),
+    dentro: X.debe(X.en('dentro'), 'dentro'),
+    tolva: X.debe(X.en('tolva'), 'tolva'),
+    prensa: X.debe(X.en('prensa', 1), 'prensa'),
+    veinticinco: X.debe(X.en('veinticinco'), 'veinticinco'),
+    pala: X.debe(X.en('pala'), 'pala'),
+    cuatro: X.debe(X.en('cuatro'), 'cuatro'),
+    rechazan: X.debe(X.en('rechazan'), 'rechazan'),
+    escombros: X.debe(X.en('escombros', 1), 'escombros'),
+    brazo: X.debe(X.en('brazo'), 'brazo'),
+    piedras: X.debe(X.en('piedras'), 'piedras'),
+    hormigon: X.debe(X.en('hormigón'), 'hormigón'),
+    atasca: X.debe(X.en('atasca'), 'atasca'),
+    cilindros: X.debe(X.en('cilindros'), 'cilindros'),
+    baterias: X.debe(X.en('baterías', 1), 'baterías'),
+    aerosoles: X.debe(X.en('aerosoles'), 'aerosoles'),
+    perfora: X.debe(X.en('perfora'), 'perfora'),
+    cortocircuito: X.debe(X.en('cortocircuito'), 'cortocircuito'),
+    chispa: X.debe(X.en('chispa'), 'chispa'),
+    incendia: X.debe(X.en('incendia'), 'incendia'),
+    volcar: X.debe(X.en('volcar'), 'volcar'),
+    contaminacion: X.debe(X.en('contaminación'), 'contaminación'),
+    grasa: X.debe(X.en('grasa'), 'grasa'),
+    mancha: X.debe(X.en('mancha'), 'mancha'),
+    diez: X.debe(X.en('diez'), 'diez'),
+    pegatina: X.debe(X.en('pegatina'), 'pegatina'),
+    entonces: X.debe(X.en('entonces'), 'entonces'),
+    cerradas: X.debe(X.en('cerradas'), 'cerradas'),
+    punto: X.debe(X.en('punto'), 'punto'),
+    cubo: X.debe(X.en('cubo'), 'cubo'),
+    vacia: X.debe(X.en('vacía'), 'vacía'),
+  };
+
+  // Claves de cámara con peso, zoom al detalle e inclinación 3D
+  const camaras = [
+    { t: 0, x: 455, y: 940, z: 0.94, r: -0.8, rx: 5, ry: -6 },
+    { t: A.deja - 0.1, x: 820, y: 1030, z: 1.42, r: 0.9, rx: 6, ry: 8, dur: 0.9 },
+    { t: A.dentro, x: 470, y: 860, z: 1.28, r: 0, rx: 8, ry: -10, dur: 1.1 },
+    { t: A.veinticinco - 0.2, x: 490, y: 830, z: 1.48, r: -0.6, rx: -4, ry: 8, dur: 1.1 },
+    { t: A.cuatro - 0.2, x: 440, y: 850, z: 1.40, r: 0.5, rx: 6, ry: -6, dur: 1.0 },
+    { t: A.rechazan, x: 520, y: 920, z: 1.04, r: 0, rx: 0, ry: 0, dur: 1.0 },
+    { t: A.brazo - 0.2, x: 740, y: 960, z: 1.32, r: 0.8, rx: 6, ry: 10, dur: 1.1 },
+    { t: A.hormigon - 0.2, x: 510, y: 870, z: 1.52, r: -0.7, rx: 8, ry: -8, dur: 1.1 },
+    { t: A.atasca, x: 520, y: 860, z: 1.58, r: 0.9, rx: -5, ry: 8, dur: 0.9 },
+    { t: A.baterias - 0.2, x: 510, y: 870, z: 1.55, r: -0.5, rx: 8, ry: -8, dur: 1.1 },
+    { t: A.perfora - 0.1, x: 515, y: 860, z: 1.60, r: 0.8, rx: -5, ry: 8, dur: 0.9 },
+    { t: A.incendia - 0.1, x: 500, y: 820, z: 1.18, r: -1.1, rx: 8, ry: -6, dur: 0.9 },
+    { t: A.volcar - 0.1, x: 690, y: 1000, z: 1.05, r: 0.9, rx: 4, ry: 8, dur: 1.1 },
+    { t: A.contaminacion - 0.1, x: 460, y: 850, z: 1.45, r: 0, rx: 6, ry: -8, dur: 1.1 },
+    { t: A.diez - 0.2, x: 420, y: 850, z: 1.52, r: -0.5, rx: -4, ry: 6, dur: 1.0 },
+    { t: A.pegatina - 0.2, x: 780, y: 1020, z: 1.38, r: 0.7, rx: 6, ry: 8, dur: 1.0 },
+    { t: A.entonces, x: 510, y: 880, z: 0.96, r: 0, rx: 3, ry: 0, dur: 1.2 },
+    { t: A.vacia - 0.3, x: 455, y: 940, z: 0.94, r: -0.5, rx: 4, ry: -5, dur: 1.2 },
+  ];
+
+  // Efectos de sonido sincronizados con cada cambio visual
+  X.sonido(0.05, 'whoosh', 0.8);
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.0) * 0.65, 'whoosh', 0.55));
+  [A.deja, A.dentro, A.pala, A.escombros, A.baterias, A.contaminacion, A.diez, A.entonces, A.cerradas, A.punto, A.cubo].forEach((t) => X.sonido(t, 'pop', 0.55));
+  X.sonido(A.veinticinco, 'swoosh', 0.75);
+  X.sonido(A.atasca, 'feedback', 0.85);
+  X.sonido(A.cilindros, 'click', 0.85);
+  X.sonido(A.cortocircuito, 'click', 0.9);
+  X.sonido(A.incendia, 'whoosh', 1.2);
+  X.sonido(A.pegatina, 'notificacion', 0.75);
+  X.sonido(A.vacia, 'dinero', 0.65);
+
+  // Llamas procedurales para el incendio del camión (Paso 2)
+  const az = X.azar(19);
+  const llamas = Array.from({ length: 12 }, (_, i) => {
+    const u = i / 11, x = 230 + u * 360 + (az() - 0.5) * 24, y = 985;
+    const o = mk('path', { fill: 'url(#g-llama)', opacity: 0.92 }, $('llamasCamion'));
+    const n = mk('path', { fill: 'url(#g-llama-in)', opacity: 0.9 }, $('llamasCamion'));
+    return { o, n, x, y, h: 150 + az() * 140 * Math.sin(u * Math.PI) + 40, w: 38 + az() * 28, s: az() * 40 };
+  });
+  const llamasC = Array.from({ length: 7 }, (_, i) => {
+    const u = i / 6, x = -80 + u * 160, y = 25;
+    const o = mk('path', { fill: 'url(#g-llama)', opacity: 0.92 }, $('llamasCalle'));
+    return { o, x, y, h: 90 + az() * 90, w: 28 + az() * 20, s: az() * 30 };
+  });
+  const lengua = (x, y, w, h, sway) => `M${(x - w).toFixed(1)} ${y.toFixed(1)} C${(x - w).toFixed(1)} ${(y - h * 0.4).toFixed(1)} ${(x + sway * 0.4 - w * 0.4).toFixed(1)} ${(y - h * 0.7).toFixed(1)} ${(x + sway).toFixed(1)} ${(y - h).toFixed(1)} C${(x + sway * 0.4 + w * 0.4).toFixed(1)} ${(y - h * 0.7).toFixed(1)} ${(x + w).toFixed(1)} ${(y - h * 0.4).toFixed(1)} ${(x + w).toFixed(1)} ${y.toFixed(1)} Z`;
+
+  // Manchas de grasa y trozos de cristal para el Paso 3 (Reciclaje)
+  const manchas = Array.from({ length: 16 }, (_, i) => {
+    const c = mk('ellipse', {
+      cx: 210 + (i % 4) * 82 + (az() - 0.5) * 30,
+      cy: 740 + Math.floor(i / 4) * 62 + (az() - 0.5) * 20,
+      rx: 22 + az() * 26, ry: 14 + az() * 16,
+      fill: i % 3 === 0 ? '#7FD66A' : '#3E2F1D', opacity: 0
+    }, $('manchasGrasa'));
+    return { c, f: az() * 6 };
+  });
+
+  // Humo, chispas y partículas
+  const humoIncendio = X.humo($('humoCamion'), { ruta: (u) => [480 + 60 * Math.sin(u * 5), 720 - 520 * u], n: 18, vida: 2.4, tam: [55, 160], color: '#262220', op: 0.6, semilla: 7, viento: [35, -50] });
+  const vaporAceite = X.humo($('fugaHidraulica'), { ruta: (u) => [605 + 20 * Math.sin(u * 6), 748 - 180 * u], n: 12, vida: 1.5, tam: [18, 48], color: '#FF8A5B', op: 0.65, semilla: 12, viento: [15, -30] });
+  const chispas = X.particulas($('chispasLitio'), { n: 24, ruta: (u) => [535 + (u - 0.5) * 220, 860 - Math.sin(u * Math.PI) * 140], vuelta: 0.9, tam: [6, 13], color: '#FFF275', op: 0.95, semilla: 9, jitter: 45 });
+  const gotasGrasa = X.particulas($('manchasGrasa'), { n: 20, ruta: (u) => [520 - u * 310, 760 + Math.sin(u * 6) * 90], vuelta: 1.4, tam: [8, 16], color: '#8BD96B', op: 0.85, semilla: 15, jitter: 35 });
+
+  // Ondas de impacto, flechas, lupa, contador y destellos
+  const ondaAcera = X.onda($('ondas'), { x: 945, y: 1120, color: '#FF5A5F', radio: 210, ancho: 12 });
+  const ondaAtasco = X.onda($('ondas'), { x: 560, y: 920, color: '#FF8A5B', radio: 240, ancho: 14 });
+  const ondaChispa = X.onda($('ondas'), { x: 535, y: 855, color: '#4FB3FF', radio: 280, ancho: 16 });
+  const ondaFuego = X.onda($('ondas'), { x: 460, y: 830, color: '#FF5A1F', radio: 520, ancho: 22 });
+  const flechaPrensa1 = X.flecha($('ondas'), { d: 'M650 790 L430 790', color: '#FF8A5B', ancho: 11 });
+  const flechaPrensa2 = X.flecha($('ondas'), { d: 'M650 870 L430 870', color: '#FF8A5B', ancho: 11 });
+  const lupa = X.lupa($('capaLupa'), { fuente: '#contenido', r: 120, zoom: 2.15 });
+  const cont = X.contador($('contador'), { desde: 1, hasta: 25, sufijo: ' t', separador: '.' });
+  const destCont = X.destello($('contadorW'));
+  const destCard = X.destello($('solucion'));
+
+  const subs = X.subtitulos($('subs'), {
+    max: 3, y: 1470,
+    claves: ['bolsa', 'acera', 'dentro', 'prensa', 'veinticinco', 'toneladas', 'cuatro', 'escombros', 'brazo', 'hormigón', 'atasca', 'cilindros', 'baterías', 'litio', 'aerosoles', 'cortocircuito', 'chispa', 'incendia', 'volcar', 'contaminación', 'reciclaje', 'diez', 'pegatina', 'punto', 'vacía']
+  });
+  const grano = X.grano($('lienzo'), 0.07);
+  const pp1 = X.primerPlano($('lienzo'), { n: 7, tipo: 'bokeh', color: '#FFD9B0', semilla: 31, prof: [1.7, 2.4], blur: [22, 36], op: [0.12, 0.24] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 8, tipo: 'polvo', color: '#9FD6FF', semilla: 48, prof: [1.4, 2.0], blur: [4, 9], op: [0.25, 0.5] });
+
+  return (t) => {
+    X.camara($('cam'), t, camaras);
+
+    // Sacudida de cámara en el atasco de escombros y en la explosión/incendio de litio
+    let dx = 0, dy = 0;
+    [[A.atasca, 18], [A.cortocircuito, 16], [A.incendia, 26]].forEach(([t0, a]) => {
+      if (t > t0) { const e = Math.exp(-5 * (t - t0)) * a; dx += e * Math.sin((t - t0) * 58); dy += e * Math.cos((t - t0) * 45); }
+    });
+    $('sacude').setAttribute('transform', `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`);
+
+    X.profundidad($('fondo'), 0.78);
+    X.desenfoqueFondo($('fondo'), { base: 1.2, porZoom: 7, max: 14 });
+    pp1(t); pp2(t); grano(t);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+
+    // Sirena ámbar del camión parpadeando siempre viva
+    $('luzFarol').setAttribute('opacity', (0.45 + 0.5 * Math.sin(t * 10)).toFixed(2));
+
+    // 1 · GANCHO: El brazo mecánico levanta la primera bolsa (0..1.8s) y luego tiembla con los escombros (A.brazo)
+    const levanta1 = X.C.inOut(X.seg(t, 0.05, A.deja - 0.1));
+    const caeDentro = X.C.in(X.seg(t, A.deja - 0.2, A.deja + 0.3));
+    let angBrazo = -72 * levanta1 * (1 - caeDentro);
+    if (t >= A.escombros - 0.2 && t < A.hormigon) {
+      const intenta = X.C.out(X.seg(t, A.brazo - 0.1, A.brazo + 0.7));
+      angBrazo = -18 * intenta + 4 * Math.sin(t * 35) * intenta;
+    }
+    $('brazoArt').setAttribute('transform', `rotate(${angBrazo.toFixed(2)})`);
+    $('bolsaSubiendo').setAttribute('opacity', (1 - caeDentro).toFixed(2));
+
+    // Halo de alerta y cruz sobre la bolsa que el camión DEJA en la acera
+    const alertaAcera = X.C.suave(X.seg(t, A.deja - 0.1, A.deja + 0.4)) * (1 - X.C.suave(X.seg(t, A.dentro, A.dentro + 0.5)));
+    $('haloRechazo').setAttribute('opacity', (alertaAcera * (0.65 + 0.3 * Math.sin(t * 8))).toFixed(2));
+    ondaAcera.dibuja(t, A.deja);
+    X.anima($('cruzAcera'), t, { entra: A.deja, dur: 0.5, sale: A.dentro - 0.1, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+
+    // 2 · SECCIÓN EN CORTE DEL CAMIÓN («mira el camión por dentro»)
+    const abreCorte = (t < A.dentro - 0.1 ? 0 : X.C.natural((t - (A.dentro - 0.1)) / 0.85)) * (1 - X.C.inOut(X.seg(t, A.pegatina - 0.2, A.pegatina + 0.4)));
+    $('corteR').setAttribute('width', (680 * X.limita(abreCorte)).toFixed(1));
+
+    // Movimiento de la pala de acero y los cilindros hidráulicos
+    // a) En la explicación inicial: comprime la basura ×4
+    const emp1 = X.C.inOut(X.seg(t, A.prensa, A.cuatro + 0.4)) * (1 - X.C.inOut(X.seg(t, A.rechazan - 0.2, A.rechazan + 0.4)));
+    // b) En Paso 1 (escombros): avanza y choca en seco contra el hormigón en x=510
+    const emp2 = X.C.in(X.seg(t, A.hormigon + 0.1, A.atasca + 0.15)) * (1 - X.C.inOut(X.seg(t, A.baterias - 0.3, A.baterias + 0.2)));
+    // c) En Paso 2 (baterías): aplasta y perfora la batería en x=495
+    const emp3 = X.C.in(X.seg(t, A.aerosoles + 0.2, A.perfora + 0.2)) * (1 - X.C.inOut(X.seg(t, A.incendia + 0.2, A.volcar)));
+    // d) En Paso 3 (reciclaje): aplasta la bolsa con grasa contra el cartón
+    const emp4 = X.C.inOut(X.seg(t, A.grasa, A.mancha + 0.5)) * (1 - X.C.inOut(X.seg(t, A.pegatina - 0.3, A.pegatina + 0.2)));
+
+    let xPala = 560 - 210 * emp1 - 65 * emp2 - 80 * emp3 - 180 * emp4;
+    if (t >= A.atasca && t < A.baterias - 0.2) xPala += 4 * Math.sin(t * 45) * Math.exp(-2 * (t - A.atasca));
+    $('palaAcero').setAttribute('transform', `translate(${xPala.toFixed(1)} 0)`);
+    $('vastago1').setAttribute('x', xPala.toFixed(1));
+    $('vastago1').setAttribute('width', Math.max(10, 660 - xPala).toFixed(1));
+    $('vastago2').setAttribute('x', xPala.toFixed(1));
+    $('vastago2').setAttribute('width', Math.max(10, 660 - xPala).toFixed(1));
+
+    // Compresión del bloque de basura según la posición de la pala
+    const anchoMasa = Math.max(165, xPala - 190);
+    const escMasa = anchoMasa / 380;
+    $('bloqueBasura').setAttribute('transform', `translate(175 0) scale(${escMasa.toFixed(3)} 1) translate(-175 0)`);
+    flechaPrensa1.dibuja(t, A.pala, 0.65, A.rechazan);
+    flechaPrensa2.dibuja(t, A.pala + 0.1, 0.65, A.rechazan);
+
+    // 3 · PASO 1: ESCOMBROS Y ROTURA DE CILINDROS
+    const visEsc = X.C.suave(X.seg(t, A.escombros, A.escombros + 0.5)) * (1 - X.C.suave(X.seg(t, A.baterias - 0.2, A.baterias + 0.2)));
+    $('piedrasAcera').setAttribute('opacity', visEsc.toFixed(2));
+    const visEscDentro = X.C.suave(X.seg(t, A.piedras - 0.1, A.piedras + 0.4)) * (1 - X.C.suave(X.seg(t, A.baterias - 0.2, A.baterias + 0.2)));
+    $('escombrosDentro').setAttribute('opacity', visEscDentro.toFixed(2));
+    ondaAtasco.dibuja(t, A.atasca);
+    const roturaCil = X.C.suave(X.seg(t, A.cilindros - 0.1, A.cilindros + 0.3)) * (1 - X.C.suave(X.seg(t, A.baterias - 0.2, A.baterias + 0.2)));
+    $('grietaCil').setAttribute('opacity', roturaCil.toFixed(2));
+    vaporAceite.dibuja(t, A.cilindros - 0.1, A.baterias - 0.2);
+
+    // 4 · PASO 2: BATERÍAS DE LITIO, CORTOCIRCUITO, INCENDIO Y VOLCADO
+    const visBat = X.C.suave(X.seg(t, A.baterias, A.baterias + 0.4)) * (1 - X.C.suave(X.seg(t, A.contaminacion - 0.2, A.contaminacion + 0.2)));
+    $('peligroDentro').setAttribute('opacity', visBat.toFixed(2));
+    chispas.dibuja(t, A.cortocircuito - 0.1, A.volcar);
+    ondaChispa.dibuja(t, A.cortocircuito);
+    ondaFuego.dibuja(t, A.incendia);
+
+    const nivFuego = X.C.out(X.seg(t, A.chispa + 0.1, A.incendia + 0.4)) * (1 - X.C.inOut(X.seg(t, A.contaminacion - 0.3, A.contaminacion + 0.2)));
+    llamas.forEach((f) => {
+      if (nivFuego < 0.01) { f.o.setAttribute('d', ''); f.n.setAttribute('d', ''); return; }
+      const fl = 0.75 + 0.25 * X.ruidoF(t * 2.6 + f.s, 1) + 0.12 * Math.sin(t * 14 + f.s);
+      const h = f.h * fl * nivFuego, sway = 35 * X.ruidoF(t * 1.8 + f.s, 2) * nivFuego;
+      f.o.setAttribute('d', lengua(f.x, f.y, f.w * (0.55 + 0.45 * nivFuego), h, sway));
+      f.n.setAttribute('d', lengua(f.x + sway * 0.1, f.y, f.w * 0.5, h * 0.55, sway * 0.5));
+    });
+    humoIncendio.dibuja(t, A.incendia - 0.1, A.contaminacion - 0.2);
+    $('tinte').style.opacity = (0.42 * nivFuego).toFixed(3);
+    const fl = Math.max(Math.exp(-6 * Math.max(0, t - A.cortocircuito)) * (t >= A.cortocircuito ? 1 : 0), Math.exp(-4 * Math.max(0, t - A.incendia)) * (t >= A.incendia ? 1 : 0));
+    $('flash').style.opacity = (0.75 * fl).toFixed(3);
+
+    // Volcado de emergencia de la caja del camión («volcar la carga ardiendo»)
+    const vuelca = X.C.inOut(X.seg(t, A.volcar - 0.1, A.volcar + 0.7)) * (1 - X.C.inOut(X.seg(t, A.contaminacion - 0.3, A.contaminacion + 0.2)));
+    $('cajaW').setAttribute('transform', `translate(710 1040) rotate(${(16 * vuelca).toFixed(2)}) translate(-710 -1040)`);
+    $('cargaVolcada').setAttribute('opacity', vuelca.toFixed(2));
+    llamasC.forEach((f) => {
+      if (vuelca < 0.05) { f.o.setAttribute('d', ''); return; }
+      const h = f.h * vuelca * (0.8 + 0.2 * Math.sin(t * 12 + f.s));
+      f.o.setAttribute('d', lengua(f.x, f.y, f.w, h, 18 * Math.sin(t * 5 + f.s)));
+    });
+
+    // 5 · PASO 3: CONTAMINACIÓN EN EL RECICLAJE Y PEGATINA ROJA
+    const visRec = X.C.suave(X.seg(t, A.contaminacion, A.contaminacion + 0.5)) * (1 - X.C.suave(X.seg(t, A.entonces, A.entonces + 0.4)));
+    $('capaReciclaje').setAttribute('opacity', visRec.toFixed(2));
+    gotasGrasa.dibuja(t, A.grasa, A.pegatina);
+    const sucRec = X.C.firme(X.seg(t, A.mancha - 0.1, A.diez + 0.4)) * visRec;
+    manchas.forEach((m, i) => {
+      const k = X.limita(sucRec * 1.6 - i * 0.04);
+      m.c.setAttribute('opacity', (k * 0.85).toFixed(2));
+    });
+
+    // Pegatina roja puesta en el cubo de la acera
+    const escPeg = t < A.pegatina - 0.1 ? 0 : X.C.blando((t - (A.pegatina - 0.1)) / 0.55) * (1 - X.C.inOut(X.seg(t, A.cerradas, A.cerradas + 0.5)));
+    $('pegatinaRoja').setAttribute('transform', `translate(0 -5) scale(${Math.max(0, escPeg).toFixed(3)})`);
+
+    // Lupa ampliando el atasco de hormigón (Paso 1) y la perforación de la batería (Paso 2)
+    const lu1 = (t < A.atasca - 0.1 ? 0 : X.C.blando((t - (A.atasca - 0.1)) / 0.55)) * (1 - X.C.inOut(X.seg(t, A.baterias - 0.3, A.baterias + 0.1)));
+    const lu2 = (t < A.perfora - 0.1 ? 0 : X.C.blando((t - (A.perfora - 0.1)) / 0.55)) * (1 - X.C.inOut(X.seg(t, A.incendia - 0.1, A.incendia + 0.3)));
+    if (lu1 > 0.01) lupa.dibuja(t, { x: 410, y: 810, mira: [565, 925], z: 2.15, a: lu1 });
+    else if (lu2 > 0.01) lupa.dibuja(t, { x: 410, y: 810, mira: [535, 865], z: 2.2, a: lu2 });
+    else lupa.el.setAttribute('opacity', 0);
+
+    // 6 · CIERRE: La acera queda limpia y el camión avanza con tic verde
+    const limpiaAcera = X.C.inOut(X.seg(t, A.cubo + 0.3, A.vacia + 0.2));
+    $('basuraAcera').setAttribute('transform', `translate(${(945 + 260 * limpiaAcera).toFixed(1)} 1140) scale(${(1 - 0.8 * limpiaAcera).toFixed(3)})`);
+    $('basuraAcera').setAttribute('opacity', (1 - limpiaAcera).toFixed(2));
+    X.anima($('ticFinal'), t, { entra: A.vacia - 0.2, dur: 0.55, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+
+    // 7 · HUD Y TARJETAS DE TEXTO
+    X.anima($('titular'), t, { entra: 0.0, dur: 0.5, sale: A.dentro - 0.2, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('pCorte'), t, { entra: A.dentro, dur: 0.45, sale: A.prensa - 0.15, desde: { y: -30, blur: 12 }, curva: 'firme' });
+
+    X.anima($('contadorW'), t, { entra: A.prensa + 0.2, dur: 0.55, sale: A.pala + 0.1, desde: { y: -30, s: 0.75, blur: 16 }, curva: 'blando' });
+    cont.dibuja(t, A.prensa + 0.2, A.veinticinco + 0.5 - (A.prensa + 0.2));
+    destCont.dibuja(t, A.veinticinco + 0.2, 0.8);
+
+    X.anima($('cVolumen'), t, { entra: A.cuatro - 0.2, dur: 0.55, sale: A.rechazan + 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('pMotivo1'), t, { entra: A.escombros - 0.1, dur: 0.5, sale: A.baterias - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cBrazo'), t, { entra: A.brazo, dur: 0.55, sale: A.hormigon - 0.1, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cAtasco'), t, { entra: A.atasca - 0.1, dur: 0.55, sale: A.baterias - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('pMotivo2'), t, { entra: A.baterias - 0.1, dur: 0.5, sale: A.incendia - 0.1, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cCorto'), t, { entra: A.cortocircuito - 0.1, dur: 0.55, sale: A.incendia - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('pIncendio'), t, { entra: A.incendia, dur: 0.45, sale: A.contaminacion - 0.2, desde: { s: 0.65, y: 0, blur: 16 }, curva: 'blando' });
+
+    X.anima($('pMotivo3'), t, { entra: A.contaminacion - 0.1, dur: 0.5, sale: A.entonces - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cArruina'), t, { entra: A.diez - 0.2, dur: 0.55, sale: A.pegatina - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cPegatina'), t, { entra: A.pegatina, dur: 0.55, sale: A.entonces - 0.1, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    X.anima($('solucion'), t, { entra: A.entonces + 0.1, dur: 0.7, sale: A.vacia - 0.2, desde: { y: -50, blur: 20, s: 0.94 }, curva: 'firme' });
+    X.anima($('f1'), t, { entra: A.cerradas - 0.2, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    X.anima($('f2'), t, { entra: A.punto - 0.3, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    X.anima($('f3'), t, { entra: A.cubo - 0.3, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    destCard.dibuja(t, A.cerradas, 0.9);
+
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

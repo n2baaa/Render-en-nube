@@ -1,0 +1,103 @@
+name: Render Video 3D Fusion (Paralelo 4x)
+
+on:
+  workflow_dispatch:
+    inputs:
+      proyecto:
+        description: 'Carpeta del proyecto a renderizar (ej. cables-submarinos-3d)'
+        required: true
+        default: 'cables-submarinos-3d'
+      calidad:
+        description: 'Calidad de render (final = 1080x1920, previa = 540x960)'
+        required: true
+        default: 'final'
+        type: choice
+        options:
+          - final
+          - previa
+
+jobs:
+  render-tramos:
+    name: "Renderizar Tramo ${{ matrix.tramo }} de 4"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tramo: [0, 1, 2, 3]
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias y Chromium
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
+          npm ci
+
+      - name: Renderizar Tramo ${{ matrix.tramo }}/4
+        run: |
+          mkdir -p tramos_out
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" tramo ${{ matrix.tramo }} 4 "tramos_out/tramo_${{ matrix.tramo }}.mp4" --calidad "${{ inputs.calidad }}" --hilos 2
+
+      - name: Subir tramo ${{ matrix.tramo }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tramo-${{ matrix.tramo }}
+          path: tramos_out/tramo_${{ matrix.tramo }}.mp4
+          retention-days: 1
+
+  ensamblar-y-masterizar:
+    name: "Unir Video + Masterizar Audio (-14 LUFS)"
+    needs: render-tramos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar FFmpeg, Chrome y librerías de audio
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
+          pip install numpy scipy
+          npm ci
+
+      - name: Descargar los 4 tramos renderizados
+        uses: actions/download-artifact@v4
+        with:
+          pattern: tramo-*
+          path: tramos_in
+          merge-multiple: true
+
+      - name: Generar Hojas de Control (gancho, loop, hoja) y Unir MP4 Final (-14 LUFS)
+        run: |
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" gancho
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" loop
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" hoja 18
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" unir tramos_in 4 --calidad "${{ inputs.calidad }}"
+
+      - name: Publicar Video Final y Hojas de Control
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-final-${{ inputs.proyecto }}
+          path: |
+            ${{ inputs.proyecto }}/resultados/video-*.mp4
+            ${{ inputs.proyecto }}/resultados/gancho.jpg
+            ${{ inputs.proyecto }}/resultados/loop.jpg
+            ${{ inputs.proyecto }}/resultados/hoja.jpg
+            ${{ inputs.proyecto }}/resultados/onda.png
+            ${{ inputs.proyecto }}/leyenda.txt

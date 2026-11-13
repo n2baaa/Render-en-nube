@@ -1,0 +1,5 @@
+Si el motor está girando a 900 RPM… ¿por qué el carro no se mueve en una pendiente? ¿Y cómo logra arrancar cuesta arriba sin apagarse?
+
+En esta clase magistral en 3D abrimos el motor y la transmisión por dentro: pistones, bielas, cigüeñal, volante de inercia, el deslizamiento del embrague, la multiplicación de torque en primera marcha, el equilibrio de fuerzas contra la gravedad y su comparación con una motocicleta.
+
+Fuentes: Bosch Automotive Handbook (SAE), Shigley's Mechanical Engineering Design y Fundamentals of Vehicle Dynamics (Gillespie).

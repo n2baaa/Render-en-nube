@@ -1,0 +1,11 @@
+node_modules/
+**/node_modules/
+**/resultados/*.mp4
+*-final.mp4
+**/voz/mezcla*.wav
+**/voz/musica-*.wav
+preview-correcciones-fusion/
+.DS_Store
+Thumbs.db
+__pycache__/
+**/__pycache__/

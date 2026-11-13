@@ -1,0 +1,250 @@
+{
+ "dur": 62.647,
+ "eventos": [
+  {
+   "t": 0.02,
+   "tipo": "explosion",
+   "ganancia": 1.15,
+   "archivo": "voz/sfx/ancla-corte.wav"
+  },
+  {
+   "t": 0.18,
+   "tipo": "chispa",
+   "ganancia": 0.95
+  },
+  {
+   "t": 0.55,
+   "tipo": "whoosh",
+   "ganancia": 0.9
+  },
+  {
+   "t": 1.1,
+   "tipo": "alarma",
+   "ganancia": 0.8
+  },
+  {
+   "t": 1.52,
+   "tipo": "riser",
+   "ganancia": 0.85
+  },
+  {
+   "t": 1.85,
+   "tipo": "thud",
+   "ganancia": 0.95
+  },
+  {
+   "t": 2.25,
+   "tipo": "whoosh",
+   "ganancia": 0.9
+  },
+  {
+   "t": 2.95,
+   "tipo": "dinero",
+   "ganancia": 0.85
+  },
+  {
+   "t": 3.65,
+   "tipo": "swoosh",
+   "ganancia": 0.8
+  },
+  {
+   "t": 5.56,
+   "tipo": "feedback",
+   "ganancia": 0.9
+  },
+  {
+   "t": 7.44,
+   "tipo": "agua",
+   "ganancia": 0.85
+  },
+  {
+   "t": 9.07,
+   "tipo": "whoosh",
+   "ganancia": 0.95
+  },
+  {
+   "t": 9.57,
+   "tipo": "thud",
+   "ganancia": 0.85
+  },
+  {
+   "t": 11.8,
+   "tipo": "whoosh",
+   "ganancia": 0.8
+  },
+  {
+   "t": 13.26,
+   "tipo": "pop",
+   "ganancia": 0.85
+  },
+  {
+   "t": 15.18,
+   "tipo": "click",
+   "ganancia": 0.8
+  },
+  {
+   "t": 17.06,
+   "tipo": "swoosh",
+   "ganancia": 1,
+   "archivo": "voz/sfx/laser-fibra.wav"
+  },
+  {
+   "t": 18.13,
+   "tipo": "thud",
+   "ganancia": 1
+  },
+  {
+   "t": 18.78,
+   "tipo": "click",
+   "ganancia": 0.75
+  },
+  {
+   "t": 20.98,
+   "tipo": "whoosh",
+   "ganancia": 0.75
+  },
+  {
+   "t": 23.1,
+   "tipo": "feedback",
+   "ganancia": 0.95
+  },
+  {
+   "t": 24.78,
+   "tipo": "whoosh",
+   "ganancia": 0.85
+  },
+  {
+   "t": 25.3,
+   "tipo": "pop",
+   "ganancia": 0.9
+  },
+  {
+   "t": 26.12,
+   "tipo": "chispa",
+   "ganancia": 0.8
+  },
+  {
+   "t": 27.82,
+   "tipo": "swoosh",
+   "ganancia": 0.95,
+   "archivo": "voz/sfx/laser-fibra.wav"
+  },
+  {
+   "t": 29.76,
+   "tipo": "notificacion",
+   "ganancia": 0.95
+  },
+  {
+   "t": 32.07,
+   "tipo": "thud",
+   "ganancia": 0.95
+  },
+  {
+   "t": 34,
+   "tipo": "chispa",
+   "ganancia": 0.95
+  },
+  {
+   "t": 35.42,
+   "tipo": "agua",
+   "ganancia": 0.8
+  },
+  {
+   "t": 37.54,
+   "tipo": "explosion",
+   "ganancia": 1.05
+  },
+  {
+   "t": 37.79,
+   "tipo": "chispa",
+   "ganancia": 1
+  },
+  {
+   "t": 39.9,
+   "tipo": "whoosh",
+   "ganancia": 0.85
+  },
+  {
+   "t": 41.26,
+   "tipo": "click",
+   "ganancia": 0.9
+  },
+  {
+   "t": 42.3,
+   "tipo": "pop",
+   "ganancia": 0.9
+  },
+  {
+   "t": 43.63,
+   "tipo": "alarma",
+   "ganancia": 0.95
+  },
+  {
+   "t": 44.84,
+   "tipo": "whoosh",
+   "ganancia": 0.85
+  },
+  {
+   "t": 45.68,
+   "tipo": "click",
+   "ganancia": 0.8
+  },
+  {
+   "t": 46.74,
+   "tipo": "motor",
+   "ganancia": 0.85
+  },
+  {
+   "t": 47.86,
+   "tipo": "riser",
+   "ganancia": 0.9
+  },
+  {
+   "t": 48.25,
+   "tipo": "explosion",
+   "ganancia": 1.15,
+   "archivo": "voz/sfx/ancla-corte.wav"
+  },
+  {
+   "t": 50.36,
+   "tipo": "alarma",
+   "ganancia": 0.95
+  },
+  {
+   "t": 52.02,
+   "tipo": "whoosh",
+   "ganancia": 0.9
+  },
+  {
+   "t": 52.58,
+   "tipo": "thud",
+   "ganancia": 0.9
+  },
+  {
+   "t": 54.12,
+   "tipo": "notificacion",
+   "ganancia": 0.9
+  },
+  {
+   "t": 56.34,
+   "tipo": "motor",
+   "ganancia": 1,
+   "archivo": "voz/sfx/rov-submarino.wav"
+  },
+  {
+   "t": 57.62,
+   "tipo": "agua",
+   "ganancia": 0.85
+  },
+  {
+   "t": 58.98,
+   "tipo": "whoosh",
+   "ganancia": 0.9
+  },
+  {
+   "t": 60.38,
+   "tipo": "swoosh",
+   "ganancia": 0.8
+  }
+ ]
+}

@@ -1,0 +1,105 @@
+{
+ "dur": 58.059999999999995,
+ "eventos": [
+  {
+   "t": 0.05,
+   "tipo": "whoosh",
+   "vol": 0.85
+  },
+  {
+   "t": 0.22,
+   "tipo": "pop",
+   "vol": 0.6
+  },
+  {
+   "t": 5.08,
+   "tipo": "feedback",
+   "vol": 0.8
+  },
+  {
+   "t": 7.96,
+   "tipo": "whoosh",
+   "vol": 0.6
+  },
+  {
+   "t": 8.26,
+   "tipo": "pop",
+   "vol": 0.65
+  },
+  {
+   "t": 13.84,
+   "tipo": "whoosh",
+   "vol": 0.6
+  },
+  {
+   "t": 14.98,
+   "tipo": "feedback",
+   "vol": 0.85
+  },
+  {
+   "t": 16.28,
+   "tipo": "click",
+   "vol": 0.75
+  },
+  {
+   "t": 18.33,
+   "tipo": "whoosh",
+   "vol": 0.65
+  },
+  {
+   "t": 20.74,
+   "tipo": "click",
+   "vol": 0.9
+  },
+  {
+   "t": 26.98,
+   "tipo": "feedback",
+   "vol": 0.95
+  },
+  {
+   "t": 29.34,
+   "tipo": "whoosh",
+   "vol": 0.65
+  },
+  {
+   "t": 34.04,
+   "tipo": "notificacion",
+   "vol": 0.75
+  },
+  {
+   "t": 36.46,
+   "tipo": "swoosh",
+   "vol": 0.75
+  },
+  {
+   "t": 39.67,
+   "tipo": "whoosh",
+   "vol": 0.65
+  },
+  {
+   "t": 43.5,
+   "tipo": "feedback",
+   "vol": 0.8
+  },
+  {
+   "t": 48.05,
+   "tipo": "whoosh",
+   "vol": 0.65
+  },
+  {
+   "t": 50.94,
+   "tipo": "click",
+   "vol": 0.8
+  },
+  {
+   "t": 53.4,
+   "tipo": "swoosh",
+   "vol": 0.85
+  },
+  {
+   "t": 55.22,
+   "tipo": "dinero",
+   "vol": 0.75
+  }
+ ]
+}

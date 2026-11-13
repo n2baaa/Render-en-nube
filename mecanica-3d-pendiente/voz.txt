@@ -1,0 +1,23 @@
+Si el motor está girando, ¿por qué el carro no se mueve? ¿Y cómo consigue subir una pendiente sin apagarse?
+Imagina un auto manual detenido en una subida empinada.
+Por fuera las ruedas están quietas, pero bajo el capó el motor gira a novecientas revoluciones por minuto.
+Paso uno: el motor por dentro.
+Dentro de cada cilindro explota aire con gasolina y empuja el pistón hacia abajo con fuerza lineal.
+La biela conecta el pistón con el cigüeñal y convierte ese golpe recto en un giro continuo.
+Si el cigüeñal se detuviera por completo, el motor se apagaría al instante.
+Paso dos: el camino de la fuerza hasta las ruedas.
+El giro sale del cigüeñal al volante de inercia, pasa por el embrague, entra a la caja de cambios, viaja por el eje de transmisión hasta el diferencial y finalmente mueve las ruedas.
+Paso tres: el secreto del auto detenido en la pendiente.
+Cuando pisas el pedal del embrague, separas físicamente el disco de embrague del volante de inercia.
+Por eso el motor y el volante giran libres a novecientas revoluciones, mientras la caja, los ejes y las ruedas permanecen totalmente detenidos.
+En ese instante, lo único que sostiene el peso del carro contra la gravedad es la presión de los frenos en las ruedas.
+Paso cuatro: qué pasa al soltar el embrague.
+Al levantar el pie poco a poco, el disco de embrague roza contra el volante que gira.
+El embrague patina de forma controlada: transmite torque progresivamente aunque las ruedas aún estén quietas.
+Al sentir el peso del auto, el motor pierde revoluciones, por lo que aceleramos para darle más energía.
+Aquí entra la primera marcha: un engranaje pequeño mueve uno grande, sacrificando velocidad pero multiplicando el torque por catorce.
+Paso cinco: la física real, qué sostiene el peso del auto.
+No confundas revoluciones con torque: las revoluciones son qué tan rápido gira el motor, y el torque es la fuerza con la que tuerce el eje.
+Cuando el torque multiplicado llega a la llanta, empuja el asfalto y crea una fuerza de fricción hacia adelante que iguala y supera al peso de la gravedad en la subida.
+Paso seis: en una motocicleta ocurre exactamente lo mismo.
+El cigüeñal gira, la maneta izquierda separa varios discos de embrague, la caja multiplica el torque y la cadena empuja la rueda trasera para subir sin apagarse.
