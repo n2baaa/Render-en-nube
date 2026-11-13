@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import {
   PALETTE as P, toon, mesh, buildWorld, cloud, tree, character,
+  hairComparison, stowedAnchorRig, abyssalDepthScale,
   brickTexture, sandTexture, canvasTex, polyCurve, drawTube, flowBeads,
-  cameraAt, shake, captions, subtitulosTimeline, setTimeOfDay, pulsePanel,
+  cameraAt, shake, captions, subtitulosTimeline, setTimeOfDay, distancePanel,
   explosion, inkRenderer, crearAnclas, clamp, lerp, smooth, ramp, easeOutBack, rng
 } from '../../.agents/skills/fusion/motor/kit3d.js';
 
@@ -58,16 +59,11 @@ const A = {
 
 // ── 2. MAPA DE SONIDO COMPLETO (MAGNIFIC AI SFX + BIBLIOTECA VIEGAS · < 2 s ENTRE EFECTOS) ─────────────────────
 function registrarMapaSonido() {
-  // Hook: 5 golpes en 4 segundos
-  sonido(0.02, 'explosion', 1.15, { archivo: 'voz/sfx/ancla-corte.wav' });
-  sonido(0.18, 'chispa', 0.95);
-  sonido(0.55, 'whoosh', 0.90);
-  sonido(1.10, 'alarma', 0.80);
-  sonido(1.52, 'riser', 0.85);
-  sonido(1.85, 'thud', 0.95);
-  sonido(2.25, 'whoosh', 0.90);
-  sonido(2.95, 'dinero', 0.85);
-  sonido(3.65, 'swoosh', 0.80);
+  // Hook limpio: 1 solo SFX sutil en arranque (< 2.2 s) para máxima claridad vocal
+  sonido(0.05, 'explosion', 0.65, { archivo: 'voz/sfx/ancla-corte.wav' });
+  sonido(2.25, 'whoosh', 0.80);
+  sonido(2.95, 'dinero', 0.78);
+  sonido(3.65, 'swoosh', 0.75);
   // Satélite descartado y bajada al mar
   sonido(A.satelite - 0.1, 'feedback', 0.90);
   sonido(A.hilo - 0.1, 'agua', 0.85);
@@ -92,7 +88,7 @@ function registrarMapaSonido() {
   sonido(A.voltios - 0.1, 'chispa', 0.95);
   sonido(A.oceano, 'agua', 0.80);
   sonido(A.cortocircuito - 0.1, 'explosion', 1.05);
-  sonido(A.cortocircuito + 0.15, 'chispa', 1.0);
+  sonido(A.cortocircuito + 0.35, 'chispa', 0.90);
   sonido(A.envuelves, 'whoosh', 0.85);
   sonido(A.cobre, 'click', 0.90);
   sonido(A.polietileno, 'pop', 0.90);
@@ -554,74 +550,54 @@ const kmMarkers = KM_X.map((x, i) => {
   return { g, ring, ringMat, pivot, x, u: i / 3 };
 });
 
-// Buque cablero en la superficie (y = 5.0) + ancla real con cadena de eslabones
+// Buque cablero en la superficie + ancla estibada físicamente (nunca desaparece con .visible = false)
 const shipGroup = new THREE.Group();
-shipGroup.position.set(1.2, SEA_Y, -3.2); // apartado del cable para no tapar los planos cercanos
-const hull = mesh(new THREE.BoxGeometry(5.8, 1.3, 2.2), toon('#2b3440'));
+shipGroup.position.set(1.2, SEA_Y, -3.2);
+const hull = mesh(new THREE.BoxGeometry(5.8, 1.3, 2.2), toon('#465e75'));
 hull.position.y = 0.4;
+const hullStripe = mesh(new THREE.BoxGeometry(5.9, 0.28, 2.26), toon('#dfe7ef'));
+hullStripe.position.y = 0.78;
 const deck = mesh(new THREE.BoxGeometry(5.2, 0.4, 2.0), toon('#df3b30'));
 deck.position.y = 1.1;
 const bridge = mesh(new THREE.BoxGeometry(1.5, 1.8, 1.7), toon('#f4f1e6'));
 bridge.position.set(-1.4, 2.0, 0);
 const funnel = mesh(new THREE.CylinderGeometry(0.28, 0.34, 1.2, 10), toon('#f4b942'));
 funnel.position.set(-0.2, 2.1, 0);
-shipGroup.add(hull, deck, bridge, funnel);
+shipGroup.add(hull, hullStripe, deck, bridge, funnel);
 scene.add(shipGroup);
 
-// Ancla de almirantazgo: argolla superior, cepo horizontal, caña, cruz y brazos curvos con uñas (origen en la cruz)
-const anchorGroup = new THREE.Group();
-const ironMat = toon('#2b3036');
-const ARC = Math.PI * 0.62, ARM_R = 0.85, ARM_C = 0.95;
-const arms = mesh(new THREE.TorusGeometry(ARM_R, 0.1, 8, 28, ARC), ironMat);
-arms.rotation.z = -Math.PI / 2 - ARC / 2;
-arms.position.y = ARM_C;
-const crown = mesh(new THREE.SphereGeometry(0.17, 12, 10), ironMat);
-crown.position.y = ARM_C - ARM_R;
-const shank = mesh(new THREE.CylinderGeometry(0.1, 0.12, 2.5, 10), ironMat);
-shank.position.y = 1.3;
-const stock = mesh(new THREE.CylinderGeometry(0.075, 0.075, 1.9, 8), ironMat);
-stock.rotation.x = Math.PI / 2;
-stock.position.y = 2.2;
-const stockEndA = mesh(new THREE.SphereGeometry(0.12, 10, 8), ironMat);
-stockEndA.position.set(0, 2.2, 0.95);
-const stockEndB = stockEndA.clone();
-stockEndB.position.z = -0.95;
-const shackle = mesh(new THREE.TorusGeometry(0.2, 0.055, 8, 22), ironMat);
-shackle.position.y = 2.75;
-anchorGroup.add(arms, crown, shank, stock, stockEndA, stockEndB, shackle);
-[-1, 1].forEach((s) => {
-  const half = ARC / 2;
-  const tip = new THREE.Vector2(s * ARM_R * Math.sin(half), ARM_C - ARM_R * Math.cos(half));
-  const tan = new THREE.Vector2(s * Math.cos(half), Math.sin(half));
-  const fluke = mesh(new THREE.ConeGeometry(0.27, 0.62, 4), toon('#3a4048'));
-  fluke.scale.z = 0.35;
-  fluke.position.set(tip.x + tan.x * 0.18, tip.y + tan.y * 0.18, 0);
-  fluke.rotation.z = -s * Math.atan2(Math.abs(tan.x), tan.y);
-  anchorGroup.add(fluke);
+const ANCHOR_X = -1.2, ANCHOR_HIT_Y = 1.12;
+const ANCHOR_HIT = [ANCHOR_X, ANCHOR_HIT_Y, 0];
+const anchorRig = stowedAnchorRig(shipGroup, {
+  scene,
+  hawseOffset: [2.1, 0.55, 1.12],
+  dropPos: ANCHOR_HIT,
+  scale: 0.85,
+  chainCount: 38,
 });
-scene.add(anchorGroup);
-const ANCHOR_X = -1.2, ANCHOR_HIT_Y = 1.12, ANCHOR_TOP = 3.0;
 
-const chainLinks = [];
-const linkGeo = new THREE.TorusGeometry(0.1, 0.032, 6, 12), linkMat = toon('#3a3f47');
-for (let i = 0; i < 34; i++) {
-  const l = mesh(linkGeo, linkMat, { cast: false });
-  scene.add(l);
-  chainLinks.push(l);
-}
-const _Y = new THREE.Vector3(0, 1, 0), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion();
-function layChain(a, b, show) {
-  const d = b.clone().sub(a), len = d.length();
-  d.normalize();
-  _qa.setFromUnitVectors(_Y, d);
-  chainLinks.forEach((l, i) => {
-    l.visible = show && len > 0.05;
-    if (!l.visible) return;
-    l.position.copy(a).addScaledVector(d, len * (i + 0.5) / chainLinks.length);
-    _qb.setFromAxisAngle(_Y, i % 2 ? Math.PI / 2 : 0);
-    l.quaternion.copy(_qa).multiply(_qb);
-  });
-}
+// Escala vertical abisal (0 m -> -1000 m -> -2000 m -> -4000 m)
+const depthScale = abyssalDepthScale({
+  surfaceY: SEA_Y,
+  floorY: 0,
+  maxDepth: 4000,
+  depths: [0, 1000, 2000, 4000],
+  x: -4.8,
+  z: -1.8,
+  width: 24,
+  curtainZ: -14,
+  curtainWidth: 90,
+});
+scene.add(depthScale);
+
+// Comparativa literal 1:1 cabello humano vs fibra óptica (~125 µm) en A.cabello
+const hairStage = hairComparison({
+  position: [-1.4, 1.85, 1.6],
+  scale: 0.78,
+  labelHair: 'CABELLO ~80 µm',
+  labelFiber: 'FIBRA 125 µm',
+});
+scene.add(hairStage);
 
 // Robot submarino ROV
 const rovGroup = new THREE.Group();
@@ -893,20 +869,22 @@ function update(t) {
     ar.mesh.rotation.y = (1 - clamp(k)) * 3.0;
   });
 
-  // 4. Barco, ancla (golpea el cable en x = -1.2) con su cadena, y ROV
+  // 4. Barco, ancla estibada físicamente (0 desapariciones), comparativa cabello 1:1, escala abisal y ROV
   const shipX = 1.2 + Math.sin(cyc(4)) * 0.5;
   shipGroup.position.x = shipX;
   shipGroup.rotation.z = Math.sin(cyc(8)) * 0.03;
   const kAnchorUp = smooth(ramp(t, 1.2, 2.4)) * (1 - smooth(ramp(t, A.barco, A.ancla + 0.25)));
   const kAnchorRepel = smooth(ramp(t, A.acero, A.blindaje + 0.5)) * (1 - smooth(ramp(t, META.duration - 1.4, META.duration)));
   const anchorLift = clamp(kAnchorUp + kAnchorRepel);
-  const anchorY = lerp(ANCHOR_HIT_Y, SEA_Y + 0.6, anchorLift);
-  anchorGroup.position.set(ANCHOR_X, anchorY, 0);
-  anchorGroup.rotation.z = 0.1 * (1 - anchorLift) + Math.sin(cyc(12)) * 0.06 * anchorLift;
-  const anchorShown = anchorLift < 0.97;
-  anchorGroup.visible = anchorShown;
-  const shackleTop = new THREE.Vector3(ANCHOR_X - Math.sin(anchorGroup.rotation.z) * 2.8, anchorY + Math.cos(anchorGroup.rotation.z) * 2.8, 0);
-  layChain(shackleTop, new THREE.Vector3(shipX - 2.0, SEA_Y + 0.5, -2.05), anchorShown);
+  anchorRig.userData.update(anchorLift, ANCHOR_HIT, t);
+
+  const kHairFocus = smooth(ramp(t, A.cabello - 0.35, A.cabello + 0.1)) * (1 - smooth(ramp(t, A.laser + 0.2, A.pero1 - 0.1)));
+  hairStage.visible = kHairFocus > 0.02;
+  hairStage.userData.update(t, kHairFocus);
+
+  const kDepth = smooth(ramp(t, A.hilo - 0.2, A.hilo + 0.3)) * (1 - smooth(ramp(t, A.primero - 0.3, A.primero + 0.1)))
+    + smooth(ramp(t, A.soloQue - 0.2, A.soloQue + 0.3)) * (1 - smooth(ramp(t, A.ancla - 0.2, A.ancla + 0.2)));
+  depthScale.userData.update(t, clamp(kDepth), camera);
 
   const kRov = smooth(ramp(t, A.robot - 0.4, A.robot + 0.6)) * (1 - smooth(ramp(t, META.duration - 1.2, META.duration)));
   rovGroup.position.set(Math.sin(cyc(6)) * 0.35, lerp(11.5, 2.35, kRov), 0.8);
@@ -943,27 +921,12 @@ function update(t) {
   boomShort.userData.update(t - A.cortocircuito);
   boomAnchor.userData.update(t - A.parte);
 
-  // 7. Panel HUD: 60 km (Eslabón 1), 10.000 V (Eslabón 2), colapso SWIFT (Eslabón 3)
-  if (t >= K60.pop && t <= K60.out) {
-    panel60(t, t >= K60.start ? p60 : 0);
-  } else if (t >= A.problema - 0.2 && t <= A.cobre + 0.2) {
-    panelEl.style.borderColor = '';
-    pulsePanel(panelEl, t, {
-      from: A.problema - 0.1, to: A.cobre + 0.1, period: 0.55,
-      label: 'ALIMENTACIÓN ABISAL', value: '10.000 V DC',
-      color: t >= A.cortocircuito - 0.1 ? '#df3b30' : '#e6ff5a',
-    });
-  } else if (t >= A.parte - 0.2 && t <= A.trenzas + 0.3) {
-    panelEl.style.borderColor = '';
-    pulsePanel(panelEl, t, {
-      from: A.parte - 0.1, to: A.trenzas + 0.2, period: 0.35,
-      label: 'TRÁFICO FINANCIERO SWIFT', value: 'CORTE CRÍTICO', color: '#df3b30',
-    });
-  } else {
-    panelEl.style.opacity = 0;
-    panelEl.style.borderColor = '';
-    panelEl.innerHTML = '';
-  }
+  // 7. Píldora HUD compacta (420×92 px · 14.3% del tamaño antiguo · solo 1 aparición en los 60 km)
+  distancePanel(panelEl, t, {
+    from: K60.pop, to: K60.out,
+    travelStart: K60.start, travelEnd: K60.end,
+    maxKm: 60, label: 'SEÑAL EN FIBRA ÓPTICA',
+  });
 
   // 8. Cámara continua + temblores
   cameraAt(camera, POSES, t);

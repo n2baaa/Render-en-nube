@@ -2,50 +2,25 @@
  "dur": 62.647,
  "eventos": [
   {
-   "t": 0.02,
+   "t": 0.05,
    "tipo": "explosion",
-   "ganancia": 1.15,
+   "ganancia": 0.5,
    "archivo": "voz/sfx/ancla-corte.wav"
-  },
-  {
-   "t": 0.18,
-   "tipo": "chispa",
-   "ganancia": 0.95
-  },
-  {
-   "t": 0.55,
-   "tipo": "whoosh",
-   "ganancia": 0.9
-  },
-  {
-   "t": 1.1,
-   "tipo": "alarma",
-   "ganancia": 0.8
-  },
-  {
-   "t": 1.52,
-   "tipo": "riser",
-   "ganancia": 0.85
-  },
-  {
-   "t": 1.85,
-   "tipo": "thud",
-   "ganancia": 0.95
   },
   {
    "t": 2.25,
    "tipo": "whoosh",
-   "ganancia": 0.9
+   "ganancia": 0.8
   },
   {
    "t": 2.95,
    "tipo": "dinero",
-   "ganancia": 0.85
+   "ganancia": 0.78
   },
   {
    "t": 3.65,
    "tipo": "swoosh",
-   "ganancia": 0.8
+   "ganancia": 0.75
   },
   {
    "t": 5.56,
@@ -155,9 +130,9 @@
    "ganancia": 1.05
   },
   {
-   "t": 37.79,
+   "t": 37.99,
    "tipo": "chispa",
-   "ganancia": 1
+   "ganancia": 0.9
   },
   {
    "t": 39.9,

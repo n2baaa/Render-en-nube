@@ -12902,6 +12902,69 @@
       return new _BoxGeometry(data.width, data.height, data.depth, data.widthSegments, data.heightSegments, data.depthSegments);
     }
   };
+  var CircleGeometry = class _CircleGeometry extends BufferGeometry {
+    /**
+     * Constructs a new circle geometry.
+     *
+     * @param {number} [radius=1] - Radius of the circle.
+     * @param {number} [segments=32] - Number of segments (triangles), minimum = `3`.
+     * @param {number} [thetaStart=0] - Start angle for first segment in radians.
+     * @param {number} [thetaLength=Math.PI*2] - The central angle, often called theta,
+     * of the circular sector in radians. The default value results in a complete circle.
+     */
+    constructor(radius = 1, segments = 32, thetaStart = 0, thetaLength = Math.PI * 2) {
+      super();
+      this.type = "CircleGeometry";
+      this.parameters = {
+        radius,
+        segments,
+        thetaStart,
+        thetaLength
+      };
+      segments = Math.max(3, segments);
+      const indices = [];
+      const vertices = [];
+      const normals = [];
+      const uvs = [];
+      const vertex2 = new Vector3();
+      const uv = new Vector2();
+      vertices.push(0, 0, 0);
+      normals.push(0, 0, 1);
+      uvs.push(0.5, 0.5);
+      for (let s = 0, i = 3; s <= segments; s++, i += 3) {
+        const segment = thetaStart + s / segments * thetaLength;
+        vertex2.x = radius * Math.cos(segment);
+        vertex2.y = radius * Math.sin(segment);
+        vertices.push(vertex2.x, vertex2.y, vertex2.z);
+        normals.push(0, 0, 1);
+        uv.x = (vertices[i] / radius + 1) / 2;
+        uv.y = (vertices[i + 1] / radius + 1) / 2;
+        uvs.push(uv.x, uv.y);
+      }
+      for (let i = 1; i <= segments; i++) {
+        indices.push(i, i + 1, 0);
+      }
+      this.setIndex(indices);
+      this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    /**
+     * Factory method for creating an instance of this class from the given
+     * JSON object.
+     *
+     * @param {Object} data - A JSON object representing the serialized geometry.
+     * @return {CircleGeometry} A new instance.
+     */
+    static fromJSON(data) {
+      return new _CircleGeometry(data.radius, data.segments, data.thetaStart, data.thetaLength);
+    }
+  };
   var CylinderGeometry = class _CylinderGeometry extends BufferGeometry {
     /**
      * Constructs a new cylinder geometry.
@@ -29413,6 +29476,9 @@ void main() {
     const sonidosVistos = /* @__PURE__ */ new Set();
     const norm = (s) => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9ñ]/g, "");
     const P = (tl2.palabras || []).map((p) => ({ ...p, k: norm(p.w) }));
+    const hayVozInicio = P.some((p) => p.s < 2.2 && p.e > 0);
+    const sonidosFuertes = [];
+    let sonidosEnArranque = 0;
     function busca(frase, n = 1, desde = 0) {
       const ks = String(frase).split(/\s+/).map(norm).filter(Boolean);
       let c = 0;
@@ -29458,10 +29524,33 @@ void main() {
     };
     const sonido2 = (t, tipo = "whoosh", ganancia = 1, extra = {}) => {
       if (t == null || Number.isNaN(t) || t < 0) return;
-      const key = `${Number(t).toFixed(2)}_${tipo}_${extra.archivo || ""}`;
+      const tNum = Number(Number(t).toFixed(3));
+      const key = `${tNum.toFixed(2)}_${tipo}_${extra.archivo || ""}`;
       if (sonidosVistos.has(key)) return;
       sonidosVistos.add(key);
-      eventos.push({ t: Number(Number(t).toFixed(3)), tipo, ganancia, ...extra });
+      let g = Number(ganancia ?? 1);
+      const esCapaBaja = extra.capaBaja === true || g <= 0.35;
+      const minGap = 0.35;
+      if (!esCapaBaja && sonidosFuertes.some((ts) => Math.abs(ts - tNum) < minGap)) {
+        if (tNum < 2.2) {
+          dudas.push(`Sonidos apilados al inicio (t=${tNum}s < 2.2s, separaci\xF3n < 0.35s): '${tipo}' bloqueado para proteger la voz`);
+        } else {
+          dudas.push(`SFX '${tipo}' en t=${tNum}s separado < 0.35s de otro golpe fuerte: omitido por anti-apilamiento`);
+        }
+        return;
+      }
+      if (tNum < 2.2 && hayVozInicio) {
+        sonidosEnArranque += 1;
+        const palabraActiva = P.some((p) => tNum >= p.s - 0.12 && tNum <= p.e + 0.12);
+        if (sonidosEnArranque > 1) {
+          g = Math.min(g, 0.3);
+          dudas.push(`M\xFAltiples SFX en arranque vocal (t=${tNum}s < 2.2s): '${tipo}' atenuado a ${g.toFixed(2)} (m\xE1x. recomendado: 1 SFX sutil)`);
+        } else {
+          g = Math.min(g, palabraActiva ? 0.5 : 0.62);
+        }
+      }
+      if (!esCapaBaja) sonidosFuertes.push(tNum);
+      eventos.push({ t: tNum, tipo, ganancia: Number(g.toFixed(3)), ...extra });
     };
     if (typeof window !== "undefined") {
       window.__avisos = avisos;
@@ -29638,6 +29727,384 @@ void main() {
     g.userData = { body, eyeL, eyeR };
     return g;
   }
+  function _canvasSign(text, { w = 512, h = 160, bg = "#0d1420", border = "#00f5d4", color = "#fff6e0", font = "800 66px Cap, 'Arial Black', sans-serif", size = [1.5, 0.48] } = {}) {
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const tex = new CanvasTexture(c);
+    tex.colorSpace = SRGBColorSpace;
+    tex.anisotropy = 8;
+    const draw = () => {
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = bg;
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      ctx.roundRect(8, 8, w - 16, h - 16, Math.min(34, (h - 16) / 2));
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = font;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, w / 2, h / 2 + 2);
+      tex.needsUpdate = true;
+    };
+    draw();
+    if (typeof document !== "undefined" && document.fonts && document.fonts.load) {
+      document.fonts.load(font).then(draw).catch(() => {
+      });
+    }
+    const side = new MeshBasicMaterial({ color: bg, fog: false });
+    const face = new MeshBasicMaterial({ map: tex, transparent: true, fog: false });
+    return new Mesh(new BoxGeometry(size[0], size[1], 0.05), [side, side, side, side, face, face]);
+  }
+  function hairComparison({
+    scale = 1,
+    position = [0, 0, 0],
+    skinColor = "#f2c29b",
+    hairColor = "#2a1c14",
+    shirtColor = "#2b5876",
+    fiberColor = "#00f5d4",
+    labelHair = "CABELLO ~80 \xB5m",
+    labelFiber = "FIBRA 125 \xB5m",
+    showCharacter = true,
+    showLabels = true
+  } = {}) {
+    const g = new Group();
+    g.position.set(...position);
+    g.scale.setScalar(scale);
+    const headGroup = new Group();
+    headGroup.position.set(-1.42, 0.92, -0.12);
+    headGroup.rotation.y = 0.28;
+    if (showCharacter) {
+      const torso = mesh(new CylinderGeometry(0.46, 0.72, 1.05, 16), toon(shirtColor));
+      torso.position.y = -0.62;
+      const neck = mesh(new CylinderGeometry(0.18, 0.22, 0.36, 12), toon(skinColor));
+      neck.position.y = -0.02;
+      const skull = mesh(new SphereGeometry(0.58, 22, 18), toon(skinColor));
+      skull.scale.set(0.92, 1.06, 0.95);
+      skull.position.y = 0.56;
+      const nose = mesh(new SphereGeometry(0.09, 10, 8), toon(skinColor));
+      nose.scale.set(0.85, 1.1, 1.2);
+      nose.position.set(0, 0.5, 0.55);
+      const earL = mesh(new SphereGeometry(0.12, 10, 8), toon(skinColor));
+      earL.scale.set(0.45, 0.9, 0.6);
+      earL.position.set(-0.54, 0.54, 0.02);
+      const earR = earL.clone();
+      earR.position.x = 0.54;
+      const eyeWMat = new MeshBasicMaterial({ color: "#ffffff" });
+      const eyePMat = new MeshBasicMaterial({ color: "#1c1a17" });
+      [-0.19, 0.19].forEach((ex) => {
+        const w = new Mesh(new SphereGeometry(0.095, 12, 10), eyeWMat);
+        const p = new Mesh(new SphereGeometry(0.055, 10, 8), eyePMat);
+        w.position.set(ex, 0.62, 0.48);
+        p.position.set(ex + 0.02, 0.62, 0.55);
+        headGroup.add(w, p);
+      });
+      const hairMat = toon(hairColor);
+      const hairCap = mesh(new SphereGeometry(0.62, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.58), hairMat);
+      hairCap.position.set(0, 0.62, -0.03);
+      hairCap.rotation.x = -0.18;
+      const hairBack = mesh(new SphereGeometry(0.58, 16, 12), hairMat);
+      hairBack.scale.set(0.95, 0.9, 0.8);
+      hairBack.position.set(0, 0.55, -0.18);
+      const tuft = mesh(new ConeGeometry(0.16, 0.42, 8), hairMat);
+      tuft.position.set(0.14, 1.2, 0.12);
+      tuft.rotation.z = -0.38;
+      headGroup.add(torso, neck, skull, nose, earL, earR, hairCap, hairBack, tuft);
+    }
+    g.add(headGroup);
+    const tweezersGroup = new Group();
+    tweezersGroup.position.set(-0.78, 2.38, 0.22);
+    const steelMat = toon("#d7e2ec");
+    const tipA = mesh(new BoxGeometry(0.62, 0.045, 0.07), steelMat);
+    tipA.rotation.z = -0.18;
+    tipA.position.set(0.05, 0.06, 0);
+    const tipB = mesh(new BoxGeometry(0.62, 0.045, 0.07), steelMat);
+    tipB.rotation.z = -0.32;
+    tipB.position.set(0.04, -0.02, 0);
+    const handGrip = mesh(new SphereGeometry(0.18, 14, 12), toon(skinColor));
+    handGrip.scale.set(1.2, 0.85, 0.85);
+    handGrip.position.set(-0.28, 0.22, 0);
+    const cuff = mesh(new CylinderGeometry(0.14, 0.17, 0.42, 12), toon(shirtColor));
+    cuff.rotation.z = Math.PI / 2 - 0.35;
+    cuff.position.set(-0.56, 0.34, 0);
+    tweezersGroup.add(tipA, tipB, handGrip, cuff);
+    g.add(tweezersGroup);
+    const hairPts = [
+      [-1.26, 2.02, 0.05],
+      [-0.95, 2.34, 0.16],
+      [-0.44, 2.34, 0.26],
+      [0.14, 2.12, 0.36],
+      [0.54, 1.72, 0.41],
+      [0.62, 1.24, 0.41],
+      [0.56, 0.72, 0.41],
+      [0.66, 0.34, 0.41]
+    ];
+    const hairCurve = polyCurve(hairPts, 0.35);
+    const hairStrandMat = toon(hairColor, { emissive: "#3d281c", emissiveIntensity: 0.28 });
+    const hairStrand = drawTube(hairCurve, 0.028, hairStrandMat, 96);
+    g.add(hairStrand);
+    const magnifier = new Group();
+    magnifier.position.set(0.92, 1.12, 0.38);
+    const outerBezel = mesh(new TorusGeometry(1.16, 0.095, 14, 48), toon("#2b3440"));
+    const innerGauge = mesh(new TorusGeometry(1.04, 0.032, 10, 48), toon("#f4b942"));
+    const lensDisc = new Mesh(
+      new CircleGeometry(1.04, 48),
+      new MeshBasicMaterial({ color: "#0d2238", transparent: true, opacity: 0.42, side: DoubleSide, depthWrite: false })
+    );
+    lensDisc.position.z = -0.08;
+    const handle = mesh(new CylinderGeometry(0.085, 0.11, 1.25, 12), toon("#2a2622"));
+    handle.rotation.z = 0.68;
+    handle.position.set(1.12, -1.32, 0);
+    const ferrule = mesh(new CylinderGeometry(0.11, 0.11, 0.22, 12), toon("#f4b942"));
+    ferrule.rotation.z = 0.68;
+    ferrule.position.set(0.8, -0.94, 0);
+    const tickMat = new MeshBasicMaterial({ color: "#9fb4d4", transparent: true, opacity: 0.75, fog: false });
+    [-0.55, 0, 0.55].forEach((ty) => {
+      const tick = new Mesh(new BoxGeometry(1.35, 0.016, 0.016), tickMat);
+      tick.position.set(0, ty, -0.02);
+      magnifier.add(tick);
+    });
+    magnifier.add(outerBezel, innerGauge, lensDisc, ferrule, handle);
+    const fiberPts = [
+      [0.34, -0.88, 0.03],
+      [0.34, -0.3, 0.03],
+      [0.34, 0.3, 0.03],
+      [0.34, 0.88, 0.03]
+    ];
+    const fiberCurve = polyCurve(fiberPts, 0.1);
+    const fiberClad = drawTube(fiberCurve, 0.048, toon("#bff0ff", { transparent: true, opacity: 0.48 }), 40);
+    const fiberCore = drawTube(fiberCurve, 0.025, new MeshBasicMaterial({ color: fiberColor, fog: false }), 40);
+    const fiberPhotons = flowBeads(fiberCurve, { count: 6, radius: 0.042, color: "#ffffff", speed: 0.65 });
+    magnifier.add(fiberClad, fiberCore, fiberPhotons);
+    if (showLabels) {
+      const hairTag = _canvasSign(labelHair, { w: 580, h: 150, bg: "#261a14", border: "#f4b942", color: "#fff6e0", font: "800 50px Cap, 'Arial Black', sans-serif", size: [1.62, 0.42] });
+      hairTag.position.set(-0.76, 1.56, 0.14);
+      const fiberTag = _canvasSign(labelFiber, { w: 580, h: 150, bg: "#0b1e2e", border: fiberColor, color: "#00f5d4", font: "800 50px Cap, 'Arial Black', sans-serif", size: [1.62, 0.42] });
+      fiberTag.position.set(0.94, 1.56, 0.14);
+      magnifier.add(hairTag, fiberTag);
+    }
+    g.add(magnifier);
+    g.userData = {
+      headGroup,
+      tweezersGroup,
+      hairStrand,
+      magnifier,
+      fiberCore,
+      fiberPhotons,
+      update(t = 0, progress = 1) {
+        const k = easeOutBack(clamp2(progress));
+        const bob = Math.sin(t * 3.1) * 0.03;
+        tweezersGroup.position.y = 2.38 + bob + (1 - clamp2(progress)) * 0.3;
+        magnifier.scale.setScalar(Math.max(1e-3, k));
+        hairStrand.userData.setProgress(clamp2(progress * 1.15));
+        fiberPhotons.userData.update(t, clamp2(progress), clamp2(progress));
+      }
+    };
+    g.userData.update(0, 1);
+    return g;
+  }
+  function stowedAnchorRig(shipGroup2, {
+    scene: scene2 = null,
+    hawseOffset = [2.25, 0.48, 1.12],
+    dropPos = [0, 1, 0],
+    scale = 0.85,
+    chainCount = 52,
+    color = "#2b3036"
+  } = {}) {
+    const rigGroup = new Group();
+    const hawseMarker = new Object3D();
+    hawseMarker.position.set(...hawseOffset);
+    shipGroup2.add(hawseMarker);
+    const hawseCollar = mesh(new TorusGeometry(0.24, 0.075, 10, 22), toon("#1f242b"));
+    hawseCollar.position.set(...hawseOffset);
+    hawseCollar.rotation.y = Math.PI * 0.08;
+    const hawseCore = mesh(new CylinderGeometry(0.18, 0.18, 0.16, 14), toon("#0c1016"));
+    hawseCore.rotation.x = Math.PI / 2;
+    hawseCore.position.set(hawseOffset[0], hawseOffset[1], hawseOffset[2] - 0.04);
+    shipGroup2.add(hawseCollar, hawseCore);
+    const anchorGroup = new Group();
+    const ironMat = toon(color);
+    const ARC = Math.PI * 0.62, ARM_R = 0.85, ARM_C = 0.95;
+    const arms = mesh(new TorusGeometry(ARM_R, 0.1, 8, 28, ARC), ironMat);
+    arms.rotation.z = -Math.PI / 2 - ARC / 2;
+    arms.position.y = ARM_C;
+    const crown = mesh(new SphereGeometry(0.17, 12, 10), ironMat);
+    crown.position.y = ARM_C - ARM_R;
+    const shank = mesh(new CylinderGeometry(0.1, 0.12, 2.5, 10), ironMat);
+    shank.position.y = 1.3;
+    const stock = mesh(new CylinderGeometry(0.075, 0.075, 1.9, 8), ironMat);
+    stock.rotation.x = Math.PI / 2;
+    stock.position.y = 2.2;
+    const stockEndA = mesh(new SphereGeometry(0.12, 10, 8), ironMat);
+    stockEndA.position.set(0, 2.2, 0.95);
+    const stockEndB = stockEndA.clone();
+    stockEndB.position.z = -0.95;
+    const shackle = mesh(new TorusGeometry(0.2, 0.055, 8, 22), ironMat);
+    shackle.position.y = 2.75;
+    anchorGroup.add(arms, crown, shank, stock, stockEndA, stockEndB, shackle);
+    [-1, 1].forEach((s) => {
+      const half = ARC / 2;
+      const tip = new Vector2(s * ARM_R * Math.sin(half), ARM_C - ARM_R * Math.cos(half));
+      const tan = new Vector2(s * Math.cos(half), Math.sin(half));
+      const fluke = mesh(new ConeGeometry(0.27, 0.62, 4), toon("#3a4048"));
+      fluke.scale.z = 0.35;
+      fluke.position.set(tip.x + tan.x * 0.18, tip.y + tan.y * 0.18, 0);
+      fluke.rotation.z = -s * Math.atan2(Math.abs(tan.x), tan.y);
+      anchorGroup.add(fluke);
+    });
+    anchorGroup.scale.setScalar(scale);
+    rigGroup.add(anchorGroup);
+    const chainLinks = [];
+    const linkGeo = new TorusGeometry(0.1, 0.032, 6, 12);
+    const linkMat = toon("#3a3f47");
+    for (let i = 0; i < chainCount; i++) {
+      const l = mesh(linkGeo, linkMat, { cast: false });
+      rigGroup.add(l);
+      chainLinks.push(l);
+    }
+    const targetParent = scene2 || shipGroup2.parent;
+    if (targetParent) targetParent.add(rigGroup);
+    const _hawseWorld = new Vector3();
+    const _shackleOff = new Vector3();
+    const _shackleWorld = new Vector3();
+    const _stowPos = new Vector3();
+    const _dropVec = new Vector3(...dropPos);
+    const _Y = new Vector3(0, 1, 0), _qa = new Quaternion(), _qb = new Quaternion();
+    const _dir = new Vector3();
+    rigGroup.userData = {
+      anchorGroup,
+      hawseMarker,
+      hawseCollar,
+      chainLinks,
+      update(lift = 1, hitPosOrT = null, maybeT = 0) {
+        let t = maybeT;
+        if (Array.isArray(hitPosOrT)) _dropVec.set(hitPosOrT[0], hitPosOrT[1], hitPosOrT[2]);
+        else if (hitPosOrT && hitPosOrT.isVector3) _dropVec.copy(hitPosOrT);
+        else if (typeof hitPosOrT === "number") t = hitPosOrT;
+        const k = smooth(clamp2(lift));
+        shipGroup2.updateMatrixWorld(true);
+        hawseMarker.getWorldPosition(_hawseWorld);
+        const rotZ = lerp2(0.08, -0.22, k) + Math.sin(t * 2.5) * 0.05 * (1 - k);
+        const rotX = lerp2(0, 0.14, k);
+        anchorGroup.rotation.set(rotX, 0, rotZ);
+        anchorGroup.visible = true;
+        _shackleOff.set(0, 2.75 * scale, 0).applyEuler(anchorGroup.rotation);
+        _stowPos.copy(_hawseWorld).sub(_shackleOff).add(new Vector3(0.04, -0.06, 0.16 * scale));
+        anchorGroup.position.copy(_dropVec).lerp(_stowPos, k);
+        _shackleWorld.copy(anchorGroup.position).add(_shackleOff);
+        _dir.copy(_hawseWorld).sub(_shackleWorld);
+        const len = _dir.length();
+        if (len > 1e-4) {
+          _dir.normalize();
+          _qa.setFromUnitVectors(_Y, _dir);
+        }
+        const spacing = len / chainLinks.length;
+        const linkScaleY = clamp2(spacing / 0.15, 1, 3.2);
+        chainLinks.forEach((l, i) => {
+          if (k > 0.96 && len < 0.25) {
+            l.visible = i < 2;
+            if (!l.visible) return;
+            l.position.copy(_hawseWorld).lerp(_shackleWorld, i * 0.45);
+            l.scale.set(1, 1, 1);
+          } else {
+            l.visible = len > 0.06;
+            if (!l.visible) return;
+            l.position.copy(_shackleWorld).addScaledVector(_dir, len * (i + 0.5) / chainLinks.length);
+            l.scale.set(1, linkScaleY, 1);
+          }
+          _qb.setFromAxisAngle(_Y, i % 2 ? Math.PI / 2 : 0);
+          l.quaternion.copy(_qa).multiply(_qb);
+        });
+      }
+    };
+    rigGroup.userData.update(1, 0);
+    return rigGroup;
+  }
+  function abyssalDepthScale({
+    surfaceY = 22,
+    floorY = 0,
+    maxDepth = 4e3,
+    depths = [0, 1e3, 2e3, 4e3],
+    x = -7.8,
+    z = -1.5,
+    width = 44,
+    curtainZ = -18,
+    curtainWidth = 140
+  } = {}) {
+    const g = new Group();
+    const hTotal = Math.max(2, surfaceY - floorY);
+    const curtainGeo = new PlaneGeometry(curtainWidth, hTotal, 1, 24);
+    const posAttr = curtainGeo.attributes.position;
+    const cols = new Float32Array(posAttr.count * 3);
+    const c0 = new Color("#2895d4"), c1 = new Color("#145a96"), c2 = new Color("#092c56"), c3 = new Color("#030f22");
+    for (let i = 0; i < posAttr.count; i++) {
+      const u = clamp2((posAttr.getY(i) + hTotal / 2) / hTotal);
+      const col = u > 0.72 ? c1.clone().lerp(c0, (u - 0.72) / 0.28) : u > 0.35 ? c2.clone().lerp(c1, (u - 0.35) / 0.37) : c3.clone().lerp(c2, u / 0.35);
+      cols[i * 3] = col.r;
+      cols[i * 3 + 1] = col.g;
+      cols[i * 3 + 2] = col.b;
+    }
+    curtainGeo.setAttribute("color", new BufferAttribute(cols, 3));
+    const curtainMat = new MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.72, side: DoubleSide, depthWrite: false, fog: false });
+    const curtain = new Mesh(curtainGeo, curtainMat);
+    curtain.position.set(0, floorY + hTotal / 2, curtainZ);
+    g.add(curtain);
+    const spineMat = new MeshBasicMaterial({ color: "#78e8ff", transparent: true, opacity: 0.85, fog: false });
+    const spine = new Mesh(new CylinderGeometry(0.055, 0.055, hTotal, 10), spineMat);
+    spine.position.set(x, floorY + hTotal / 2, z);
+    g.add(spine);
+    for (let d = 0; d <= maxDepth; d += 500) {
+      const y = lerp2(surfaceY, floorY, d / maxDepth);
+      const tick = new Mesh(new BoxGeometry(0.45, 0.06, 0.06), spineMat);
+      tick.position.set(x + 0.22, y, z);
+      g.add(tick);
+    }
+    const badges = [];
+    const bands = [];
+    const palette = ["#64f5ff", "#38b6ff", "#2b7fff", "#00f5d4"];
+    depths.forEach((d, idx) => {
+      const y = lerp2(surfaceY, floorY, clamp2(d / maxDepth));
+      const colHex = palette[Math.min(idx, palette.length - 1)];
+      const bandMat = new MeshBasicMaterial({ color: colHex, transparent: true, opacity: 0.52, side: DoubleSide, depthWrite: false, fog: false });
+      const ribbon = new Mesh(new PlaneGeometry(width, 0.08), bandMat);
+      ribbon.position.set(0, y, z - 0.8);
+      const majorTick = new Mesh(new BoxGeometry(1.1, 0.11, 0.11), bandMat);
+      majorTick.position.set(x + 0.55, y, z);
+      const lbl = d === 0 ? "0 m" : `-${d.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} m`;
+      const badge = _canvasSign(lbl, { w: 420, h: 140, bg: "#071324", border: colHex, color: "#ffffff", font: "800 70px Mono, 'Arial Black', sans-serif", size: [2.6, 0.86] });
+      badge.position.set(x - 1.55, Math.max(floorY + 2.05, y), z + 0.35);
+      g.add(ribbon, majorTick, badge);
+      badges.push({ badge, baseY: y });
+      bands.push({ bandMat });
+    });
+    g.userData = {
+      curtain,
+      spine,
+      badges,
+      bands,
+      update(t = 0, opacity = 1, camera2 = null) {
+        const op = clamp2(opacity);
+        g.visible = op > 0.01;
+        if (!g.visible) return;
+        curtainMat.opacity = 0.72 * op;
+        spineMat.opacity = 0.85 * op;
+        bands.forEach((b, i) => {
+          const pulse = 0.85 + 0.15 * Math.sin(t * 2.4 + i);
+          b.bandMat.opacity = 0.52 * op * pulse;
+        });
+        if (camera2) {
+          badges.forEach((b) => {
+            b.badge.rotation.y = Math.atan2(camera2.position.x - b.badge.position.x, camera2.position.z - b.badge.position.z) * 0.45;
+          });
+        }
+      }
+    };
+    return g;
+  }
   var polyCurve = (points, tension = 0.06) => new CatmullRomCurve3(points.map((p) => new Vector3(...p)), false, "catmullrom", tension);
   function drawTube(curve, radius, material, segments = 160) {
     const radial = 10, m = mesh(new TubeGeometry(curve, segments, radius, radial, false), material);
@@ -29738,6 +30205,44 @@ void main() {
       return `<span class="${cls}" style="opacity:${op};transform:scale(${sc})">${cleanW}</span>`;
     }).join(" ") + "</div>";
   }
+  function _registrarPanelUso(from, to) {
+    if (typeof window === "undefined") return;
+    const dudas = window.__dudas = window.__dudas || [];
+    const intervals = window.__panelIntervals = window.__panelIntervals || [];
+    const key = `${Number(from).toFixed(2)}-${Number(to).toFixed(2)}`;
+    if (!intervals.some((x) => x.key === key)) {
+      intervals.push({ key, from: Number(from), to: Number(to) });
+      if (intervals.length > 1 && !dudas.some((d) => d.includes("#panel se activa m\xE1s de 1 vez"))) {
+        dudas.push(`#panel se activa m\xE1s de 1 vez (${intervals.length} apariciones; m\xE1x. recomendado: 1 breve \u2264 15 %)`);
+      }
+      const dur2 = Number(window.__dur || window.META && window.META.duration || 45);
+      const total = intervals.reduce((acc, it) => acc + Math.max(0, it.to - it.from), 0);
+      const pct = total / Math.max(1, dur2) * 100;
+      if (pct > 15 && !dudas.some((d) => d.includes("#panel supera el 15 %"))) {
+        dudas.push(`#panel supera el 15 % del v\xEDdeo (${pct.toFixed(1)} % > 15 %): reduce su duraci\xF3n o usa indicadores 3D`);
+      }
+    }
+  }
+  function distancePanel(el, t, { from, to, travelStart, travelEnd, maxKm = 60, label = "FIBRA \xD3PTICA" }) {
+    _registrarPanelUso(from, to);
+    if (!el) return;
+    const kVis = smooth(ramp(t, from, from + 0.25)) * (1 - ramp(t, to - 0.25, to));
+    el.style.opacity = kVis;
+    el.style.transform = `scale(${0.94 + 0.06 * kVis})`;
+    if (kVis <= 0.01) {
+      el.innerHTML = "";
+      return;
+    }
+    const prog = smooth(ramp(t, travelStart, travelEnd));
+    const km = Math.round(lerp2(0, maxKm, prog));
+    const sig = Math.round(Math.pow(1 - prog, 1.45) * 100);
+    const isDead = km >= maxKm - 1;
+    const col = isDead ? "#df3b30" : sig < 40 ? "#ff9f1c" : "#00f5d4";
+    const W = 420, H = 92;
+    const barX = 24, barW = 372, barFill = Math.max(10, barW * prog);
+    const statusTxt = isDead ? "0 % \xB7 APAGADA" : `${sig} % L\xC1SER`;
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><text x="24" y="34" fill="#9fb4d4" font-family="Mono" font-size="14">${label}</text><text x="24" y="60" fill="#fff6e0" font-family="Cap" font-size="25">${km}/${maxKm} KM</text><text x="396" y="59" text-anchor="end" fill="${col}" font-family="Cap" font-size="20">${statusTxt}</text><rect x="${barX}" y="70" width="${barW}" height="10" rx="5" fill="#1b2234"/><rect x="${barX}" y="70" width="${barFill}" height="10" rx="5" fill="${col}"/><circle cx="${barX + barFill}" cy="75" r="6" fill="#ffffff" stroke="${col}" stroke-width="2.5"/></svg>`;
+  }
   function setTimeOfDay(scene2, world2, k, P = PALETTE) {
     const mix = (a, b) => new Color(a).lerp(new Color(b), clamp2(k));
     const top = mix(P.skyTop, "#141c35"), bottom = mix(P.skyBottom, "#3b4262");
@@ -29753,25 +30258,6 @@ void main() {
     world2.sun.color.copy(mix("#fff3da", "#8fa8ff"));
     world2.hemi.intensity = lerp2(1.25, 0.65, clamp2(k));
     world2.hemi.color.copy(mix("#ffffff", "#6d7fb8"));
-  }
-  function pulsePanel(el, t, { from, to, period = 1, label = "", value = null, color = "#e6ff5a" }) {
-    if (!el) return;
-    const k = smooth(ramp(t, from, from + 0.3)) * (1 - ramp(t, to - 0.3, to));
-    el.style.opacity = k;
-    el.style.transform = `scale(${0.9 + 0.1 * k})`;
-    if (k <= 0) {
-      el.innerHTML = "";
-      return;
-    }
-    const W = 900, H = 300, base = 215, lt = t - from, speed = 190, head = 760;
-    let d = `M0 ${base}`;
-    for (let n = 0; n * period <= lt; n++) {
-      const x = head - (lt - n * period) * speed;
-      if (x > 0) d += ` L${x} ${base} L${x} 75 L${x + 18} 245 L${x + 32} ${base}`;
-    }
-    d += ` L${head} ${base}`;
-    const valTxt = value != null ? `<text x="865" y="58" text-anchor="end" fill="${color}" font-family="Cap" font-size="40">${value}</text>` : "";
-    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><path d="${d}" fill="none" stroke="${color}" stroke-width="6" stroke-linejoin="round"/><circle cx="${head}" cy="${base}" r="9" fill="${color}"/><text x="30" y="56" fill="#fff6e0" font-family="Cap" font-size="32">${label}</text>${valTxt}</svg>`;
   }
   function explosion(scene2, at = [0, 0, 0], size = 1, seed = 21, { alto = 1, humo = 1 } = {}) {
     const g = new Group(), r = rng(seed);
@@ -29948,15 +30434,10 @@ void main() {
     viaja: debe(en("viaja", 2), "viaja")
   };
   function registrarMapaSonido() {
-    sonido(0.02, "explosion", 1.15, { archivo: "voz/sfx/ancla-corte.wav" });
-    sonido(0.18, "chispa", 0.95);
-    sonido(0.55, "whoosh", 0.9);
-    sonido(1.1, "alarma", 0.8);
-    sonido(1.52, "riser", 0.85);
-    sonido(1.85, "thud", 0.95);
-    sonido(2.25, "whoosh", 0.9);
-    sonido(2.95, "dinero", 0.85);
-    sonido(3.65, "swoosh", 0.8);
+    sonido(0.05, "explosion", 0.65, { archivo: "voz/sfx/ancla-corte.wav" });
+    sonido(2.25, "whoosh", 0.8);
+    sonido(2.95, "dinero", 0.78);
+    sonido(3.65, "swoosh", 0.75);
     sonido(A.satelite - 0.1, "feedback", 0.9);
     sonido(A.hilo - 0.1, "agua", 0.85);
     sonido(A.construyamoslo - 0.15, "whoosh", 0.95);
@@ -29978,7 +30459,7 @@ void main() {
     sonido(A.voltios - 0.1, "chispa", 0.95);
     sonido(A.oceano, "agua", 0.8);
     sonido(A.cortocircuito - 0.1, "explosion", 1.05);
-    sonido(A.cortocircuito + 0.15, "chispa", 1);
+    sonido(A.cortocircuito + 0.35, "chispa", 0.9);
     sonido(A.envuelves, "whoosh", 0.85);
     sonido(A.cobre, "click", 0.9);
     sonido(A.polietileno, "pop", 0.9);
@@ -30426,74 +30907,47 @@ void main() {
   });
   var shipGroup = new Group();
   shipGroup.position.set(1.2, SEA_Y, -3.2);
-  var hull = mesh(new BoxGeometry(5.8, 1.3, 2.2), toon("#2b3440"));
+  var hull = mesh(new BoxGeometry(5.8, 1.3, 2.2), toon("#465e75"));
   hull.position.y = 0.4;
+  var hullStripe = mesh(new BoxGeometry(5.9, 0.28, 2.26), toon("#dfe7ef"));
+  hullStripe.position.y = 0.78;
   var deck = mesh(new BoxGeometry(5.2, 0.4, 2), toon("#df3b30"));
   deck.position.y = 1.1;
   var bridge = mesh(new BoxGeometry(1.5, 1.8, 1.7), toon("#f4f1e6"));
   bridge.position.set(-1.4, 2, 0);
   var funnel = mesh(new CylinderGeometry(0.28, 0.34, 1.2, 10), toon("#f4b942"));
   funnel.position.set(-0.2, 2.1, 0);
-  shipGroup.add(hull, deck, bridge, funnel);
+  shipGroup.add(hull, hullStripe, deck, bridge, funnel);
   scene.add(shipGroup);
-  var anchorGroup = new Group();
-  var ironMat = toon("#2b3036");
-  var ARC = Math.PI * 0.62;
-  var ARM_R = 0.85;
-  var ARM_C = 0.95;
-  var arms = mesh(new TorusGeometry(ARM_R, 0.1, 8, 28, ARC), ironMat);
-  arms.rotation.z = -Math.PI / 2 - ARC / 2;
-  arms.position.y = ARM_C;
-  var crown = mesh(new SphereGeometry(0.17, 12, 10), ironMat);
-  crown.position.y = ARM_C - ARM_R;
-  var shank = mesh(new CylinderGeometry(0.1, 0.12, 2.5, 10), ironMat);
-  shank.position.y = 1.3;
-  var stock = mesh(new CylinderGeometry(0.075, 0.075, 1.9, 8), ironMat);
-  stock.rotation.x = Math.PI / 2;
-  stock.position.y = 2.2;
-  var stockEndA = mesh(new SphereGeometry(0.12, 10, 8), ironMat);
-  stockEndA.position.set(0, 2.2, 0.95);
-  var stockEndB = stockEndA.clone();
-  stockEndB.position.z = -0.95;
-  var shackle = mesh(new TorusGeometry(0.2, 0.055, 8, 22), ironMat);
-  shackle.position.y = 2.75;
-  anchorGroup.add(arms, crown, shank, stock, stockEndA, stockEndB, shackle);
-  [-1, 1].forEach((s) => {
-    const half = ARC / 2;
-    const tip = new Vector2(s * ARM_R * Math.sin(half), ARM_C - ARM_R * Math.cos(half));
-    const tan = new Vector2(s * Math.cos(half), Math.sin(half));
-    const fluke = mesh(new ConeGeometry(0.27, 0.62, 4), toon("#3a4048"));
-    fluke.scale.z = 0.35;
-    fluke.position.set(tip.x + tan.x * 0.18, tip.y + tan.y * 0.18, 0);
-    fluke.rotation.z = -s * Math.atan2(Math.abs(tan.x), tan.y);
-    anchorGroup.add(fluke);
-  });
-  scene.add(anchorGroup);
   var ANCHOR_X = -1.2;
   var ANCHOR_HIT_Y = 1.12;
-  var chainLinks = [];
-  var linkGeo = new TorusGeometry(0.1, 0.032, 6, 12);
-  var linkMat = toon("#3a3f47");
-  for (let i = 0; i < 34; i++) {
-    const l = mesh(linkGeo, linkMat, { cast: false });
-    scene.add(l);
-    chainLinks.push(l);
-  }
-  var _Y = new Vector3(0, 1, 0);
-  var _qa = new Quaternion();
-  var _qb = new Quaternion();
-  function layChain(a, b, show) {
-    const d = b.clone().sub(a), len = d.length();
-    d.normalize();
-    _qa.setFromUnitVectors(_Y, d);
-    chainLinks.forEach((l, i) => {
-      l.visible = show && len > 0.05;
-      if (!l.visible) return;
-      l.position.copy(a).addScaledVector(d, len * (i + 0.5) / chainLinks.length);
-      _qb.setFromAxisAngle(_Y, i % 2 ? Math.PI / 2 : 0);
-      l.quaternion.copy(_qa).multiply(_qb);
-    });
-  }
+  var ANCHOR_HIT = [ANCHOR_X, ANCHOR_HIT_Y, 0];
+  var anchorRig = stowedAnchorRig(shipGroup, {
+    scene,
+    hawseOffset: [2.1, 0.55, 1.12],
+    dropPos: ANCHOR_HIT,
+    scale: 0.85,
+    chainCount: 38
+  });
+  var depthScale = abyssalDepthScale({
+    surfaceY: SEA_Y,
+    floorY: 0,
+    maxDepth: 4e3,
+    depths: [0, 1e3, 2e3, 4e3],
+    x: -4.8,
+    z: -1.8,
+    width: 24,
+    curtainZ: -14,
+    curtainWidth: 90
+  });
+  scene.add(depthScale);
+  var hairStage = hairComparison({
+    position: [-1.4, 1.85, 1.6],
+    scale: 0.78,
+    labelHair: "CABELLO ~80 \xB5m",
+    labelFiber: "FIBRA 125 \xB5m"
+  });
+  scene.add(hairStage);
   var rovGroup = new Group();
   var rovBody = mesh(new BoxGeometry(1.7, 1.05, 1.3), toon("#f4b942"));
   var rovFloat = mesh(new BoxGeometry(1.85, 0.38, 1.4), toon("#ffea79"));
@@ -30635,30 +31089,6 @@ void main() {
   var panelEl = document.getElementById("panel");
   var PALABRAS_PELIGRO = ["no", "sat\xE9lite", "Pero", "apaga", "problema", "cortocircuito", "ancla", "parte", "congela", "guerra"];
   var PALABRAS_ACENTO = ["noventa", "nueve", "diez", "billones", "fibra", "vidrio", "l\xE1ser", "sesenta", "kil\xF3metros", "erbio", "repetidores", "\xF3pticos", "cobre", "polietileno", "acero", "blindaje", "robot"];
-  function panel60(t, p) {
-    const kVis = smooth(ramp(t, K60.pop + 0.1, K60.pop + 0.4)) * (1 - ramp(t, K60.out - 0.5, K60.out - 0.2));
-    panelEl.style.opacity = kVis;
-    panelEl.style.transform = `scale(${0.92 + 0.08 * kVis})`;
-    if (kVis <= 0.01) {
-      panelEl.innerHTML = "";
-      panelEl.style.borderColor = "";
-      return;
-    }
-    const km = Math.round(lerp2(0, 60, p));
-    const sig = Math.round(100 * Math.pow(1 - p, 1.3));
-    const dead = p >= 0.999;
-    const col = dead ? "#df3b30" : "#" + gradCol(p).getHexString();
-    const sigCol = dead ? "#df3b30" : sig > 55 ? "#00f5d4" : sig > 25 ? "#ff9f1c" : "#df3b30";
-    const blink = dead && Math.floor((t - K60.end) * 4) % 2 === 0;
-    panelEl.style.borderColor = blink ? "#df3b30" : "";
-    const X0 = 470, XW = 390, dotX = X0 + XW * p;
-    let ticks = "";
-    KM_X.forEach((_, i) => {
-      const cx = X0 + XW / 3 * i, on = p >= i / 3 - 1e-3;
-      ticks += `<circle cx="${cx}" cy="96" r="11" fill="${on ? KM_COL[i] : "#1b2234"}" stroke="#9fb4d4" stroke-width="3"/><text x="${cx}" y="140" text-anchor="middle" fill="${i === 3 ? "#df3b30" : "#9fb4d4"}" font-family="Mono" font-size="22">${KM_TXT[i]}</text>`;
-    });
-    panelEl.innerHTML = `<svg viewBox="0 0 900 290" width="900" height="290"><text x="40" y="56" fill="#9fb4d4" font-family="Mono" font-size="24">DISTANCIA RECORRIDA</text><text x="40" y="152" fill="${dead ? "#df3b30" : "#fff6e0"}" font-family="Cap" font-size="96">${km} KM</text><line x1="${X0}" y1="96" x2="${X0 + XW}" y2="96" stroke="#394867" stroke-width="10" stroke-linecap="round"/><line x1="${X0}" y1="96" x2="${dotX}" y2="96" stroke="${col}" stroke-width="10" stroke-linecap="round"/>` + ticks + (dead ? "" : `<circle cx="${dotX}" cy="96" r="15" fill="#ffffff" stroke="${col}" stroke-width="6"/>`) + `<text x="40" y="206" fill="#9fb4d4" font-family="Mono" font-size="24">SE\xD1AL \xD3PTICA</text><text x="860" y="208" text-anchor="end" fill="${sigCol}" font-family="Cap" font-size="34">${dead ? "0 % \xB7 SE\xD1AL APAGADA" : sig + " %"}</text><rect x="40" y="224" width="820" height="40" rx="20" fill="#1b2234" stroke="${dead ? "#df3b30" : "#394867"}" stroke-width="3"/>` + (sig > 0 ? `<rect x="40" y="224" width="${Math.max(40, 820 * sig / 100)}" height="40" rx="20" fill="${sigCol}"/>` : "") + `</svg>`;
-  }
   function update(t) {
     const cyc = (n) => t / META.duration * Math.PI * 2 * n;
     const kAbyss = smooth(ramp(t, A.pero1 - 0.8, A.pero1 + 1.5)) * (1 - smooth(ramp(t, A.soloQue - 0.5, A.soloQue + 1.2)));
@@ -30767,13 +31197,12 @@ void main() {
     const kAnchorUp = smooth(ramp(t, 1.2, 2.4)) * (1 - smooth(ramp(t, A.barco, A.ancla + 0.25)));
     const kAnchorRepel = smooth(ramp(t, A.acero, A.blindaje + 0.5)) * (1 - smooth(ramp(t, META.duration - 1.4, META.duration)));
     const anchorLift = clamp2(kAnchorUp + kAnchorRepel);
-    const anchorY = lerp2(ANCHOR_HIT_Y, SEA_Y + 0.6, anchorLift);
-    anchorGroup.position.set(ANCHOR_X, anchorY, 0);
-    anchorGroup.rotation.z = 0.1 * (1 - anchorLift) + Math.sin(cyc(12)) * 0.06 * anchorLift;
-    const anchorShown = anchorLift < 0.97;
-    anchorGroup.visible = anchorShown;
-    const shackleTop = new Vector3(ANCHOR_X - Math.sin(anchorGroup.rotation.z) * 2.8, anchorY + Math.cos(anchorGroup.rotation.z) * 2.8, 0);
-    layChain(shackleTop, new Vector3(shipX - 2, SEA_Y + 0.5, -2.05), anchorShown);
+    anchorRig.userData.update(anchorLift, ANCHOR_HIT, t);
+    const kHairFocus = smooth(ramp(t, A.cabello - 0.35, A.cabello + 0.1)) * (1 - smooth(ramp(t, A.laser + 0.2, A.pero1 - 0.1)));
+    hairStage.visible = kHairFocus > 0.02;
+    hairStage.userData.update(t, kHairFocus);
+    const kDepth = smooth(ramp(t, A.hilo - 0.2, A.hilo + 0.3)) * (1 - smooth(ramp(t, A.primero - 0.3, A.primero + 0.1))) + smooth(ramp(t, A.soloQue - 0.2, A.soloQue + 0.3)) * (1 - smooth(ramp(t, A.ancla - 0.2, A.ancla + 0.2)));
+    depthScale.userData.update(t, clamp2(kDepth), camera);
     const kRov = smooth(ramp(t, A.robot - 0.4, A.robot + 0.6)) * (1 - smooth(ramp(t, META.duration - 1.2, META.duration)));
     rovGroup.position.set(Math.sin(cyc(6)) * 0.35, lerp2(11.5, 2.35, kRov), 0.8);
     rovGroup.visible = kRov > 0.01;
@@ -30803,33 +31232,14 @@ void main() {
     boomHook.userData.update(t > META.duration - 0.5 ? 0 : t);
     boomShort.userData.update(t - A.cortocircuito);
     boomAnchor.userData.update(t - A.parte);
-    if (t >= K60.pop && t <= K60.out) {
-      panel60(t, t >= K60.start ? p60 : 0);
-    } else if (t >= A.problema - 0.2 && t <= A.cobre + 0.2) {
-      panelEl.style.borderColor = "";
-      pulsePanel(panelEl, t, {
-        from: A.problema - 0.1,
-        to: A.cobre + 0.1,
-        period: 0.55,
-        label: "ALIMENTACI\xD3N ABISAL",
-        value: "10.000 V DC",
-        color: t >= A.cortocircuito - 0.1 ? "#df3b30" : "#e6ff5a"
-      });
-    } else if (t >= A.parte - 0.2 && t <= A.trenzas + 0.3) {
-      panelEl.style.borderColor = "";
-      pulsePanel(panelEl, t, {
-        from: A.parte - 0.1,
-        to: A.trenzas + 0.2,
-        period: 0.35,
-        label: "TR\xC1FICO FINANCIERO SWIFT",
-        value: "CORTE CR\xCDTICO",
-        color: "#df3b30"
-      });
-    } else {
-      panelEl.style.opacity = 0;
-      panelEl.style.borderColor = "";
-      panelEl.innerHTML = "";
-    }
+    distancePanel(panelEl, t, {
+      from: K60.pop,
+      to: K60.out,
+      travelStart: K60.start,
+      travelEnd: K60.end,
+      maxKm: 60,
+      label: "SE\xD1AL EN FIBRA \xD3PTICA"
+    });
     cameraAt(camera, POSES, t);
     shake(camera, t, 0.45, 0.85);
     shake(camera, t - A.cortocircuito, 0.38, 0.75);
