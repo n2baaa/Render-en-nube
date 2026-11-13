@@ -1,4 +1,4 @@
-name: Render Video 3D Fusion (Paralelo 4x)
+name: Render Video 3D Fusion (Paralelo 8x)
 
 on:
   workflow_dispatch:
@@ -18,12 +18,12 @@ on:
 
 jobs:
   render-tramos:
-    name: "Renderizar Tramo ${{ matrix.tramo }} de 4"
+    name: "Renderizar Tramo ${{ matrix.tramo }} de 8"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        tramo: [0, 1, 2, 3]
+        tramo: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -34,16 +34,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Instalar dependencias y Chromium
+      - name: Instalar dependencias Node
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
           npm ci
           npm ci --prefix .agents/skills/fusion
 
-      - name: Renderizar Tramo ${{ matrix.tramo }}/4
+      - name: Renderizar Tramo ${{ matrix.tramo }}/8
         run: |
           mkdir -p tramos_out
-          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" tramo ${{ matrix.tramo }} 4 "tramos_out/tramo_${{ matrix.tramo }}.mp4" --calidad "${{ inputs.calidad }}" --hilos 2
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" tramo ${{ matrix.tramo }} 8 "tramos_out/tramo_${{ matrix.tramo }}.mp4" --calidad "${{ inputs.calidad }}" --hilos 2
 
       - name: Subir tramo ${{ matrix.tramo }}
         uses: actions/upload-artifact@v4
@@ -70,15 +69,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      - name: Instalar FFmpeg, Chrome y librerías de audio
+      - name: Instalar dependencias Node y Audio
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg google-chrome-stable
           pip install numpy scipy
           npm ci
           npm ci --prefix .agents/skills/fusion
 
-      - name: Descargar los 4 tramos renderizados
+      - name: Descargar los 8 tramos renderizados
         uses: actions/download-artifact@v4
         with:
           pattern: tramo-*
@@ -90,7 +89,7 @@ jobs:
           node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" gancho
           node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" loop
           node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" hoja 18
-          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" unir tramos_in 4 --calidad "${{ inputs.calidad }}"
+          node .agents/skills/fusion/scripts/render.mjs "${{ inputs.proyecto }}" unir tramos_in 8 --calidad "${{ inputs.calidad }}"
 
       - name: Publicar Video Final y Hojas de Control
         uses: actions/upload-artifact@v4
